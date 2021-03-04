@@ -127,7 +127,7 @@ void setUpdate(char* u){
 }
 
 void setSeparator(char* s){
-    separator = (char*) malloc(strlen(s)+1);
+    separator = (char*) malloc(100);
     separator = s;
 }
 
@@ -252,7 +252,7 @@ void parseArgs(int argc, char* argv[]){
             strcat(full, argv[i]);
     }
 
-    if (strlen(full) > len && separator != NULL)
+    if ((strlen(full) > len || forceRotate) && separator != NULL)
         strcat(full, separator);
 
     if (pid == NULL)
@@ -268,10 +268,14 @@ void updateArgs(int argc, char* argv[]){
             char* str = argv[i] + 2;
             if (strcmp(str, "command") == 0)
                 strcat(temp, getStdout(argv[++i]));
+            else if (strcmp(str, "force") != 0)
+                i++;
             continue;
         }
         else if (argv[i][0] == '-'){
+
             switch (argv[i][1]){
+                case 'f':   break;
                 case 'c':   strcat(temp, getStdout(argv[++i]));
                             break;
                 default:    i++;
@@ -282,7 +286,7 @@ void updateArgs(int argc, char* argv[]){
             strcat(temp, argv[i]);
     }
 
-    if (strlen(temp) > len && separator != NULL)
+    if ((strlen(temp) > len || forceRotate) && separator != NULL)
         strcat(temp, separator);
 
     if (strcmp(full, temp) != 0){
@@ -370,6 +374,7 @@ int main(int argc, char* argv[]){
         offset++;
         if (offset >= strlen(full))
             offset -= strlen(full);
+
         if (update > 0 && offset % update == 0)
             updateArgs(argc, argv);
         updateButton(playing, paused);
