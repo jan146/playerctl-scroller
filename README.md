@@ -121,5 +121,6 @@ Along with other performance optimizations, this solution yields much lower cpu 
 * <a href="https://gcc.gnu.org/releases.html">gcc</a> (C compiler)
 * base-devel
 * <a href="https://github.com/freedesktop/dbus">dbus</a>
+* <a href="https://github.com/altdesktop/playerctl">playerctl</a> (only for button functionality)
 <br>
 All of the above should be available in your built-in package manager's repositories (preffered way).
