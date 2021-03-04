@@ -10,6 +10,7 @@ int update = 0;
 int len = 25;
 int forceRotate = 0;
 char* separator = NULL;
+char* statusCommand = NULL;
 
 char* full = NULL;
 int offset = 0;
@@ -28,10 +29,10 @@ char* getStdout(char *command){
     fp = popen(command, "r");
 
     if (fp == NULL){
-        printf("Command did not run properly\n");
+        fprintf(stderr, "Command did not run properly\n");
         exit(1);
     }
-    
+
     if (fgets(path, sizeof(path), fp) != NULL){
         char* ret = malloc(strlen(path) + 1);
         strcpy(ret, path);
@@ -48,32 +49,34 @@ void printHelp(){
         "Usage: cscroll [OPTIONS] [TEXT]\n\
         OPTIONS:\n\
             -h:         Display this page.\n\
-            (--help)    \n\
+            --help      \n\
             -d:         Delay in seconds\n\
-            (--delay)   example: cscroll -d 0.5 [TEXT]\n\
+            --delay     example: cscroll -d 0.5 [TEXT]\n\
                         this will rotate the text every\n\
                         half of a second (500 ms).\n\
                         Default: 0.1 (100 ms).\n\
             -l:         The maximum length of [TEXT]\n\
-            (--length)  i. e. if the number of characters\n\
+            --length    i. e. if the number of characters\n\
                         (in bytes) is equal or greater than\n\
                         this, it will rotate.\n\
                         Default: 25 characters.\n\
             -f:         Force the text to rotate,\n\
-            (--force)   even if it is not too long\n\
+            --force     even if it is not too long\n\
                         (longer than -l argument).\n\
                         Default: off.\n\
             -c:         Place your desired command in double\n\
-            (--command) quotes (\"\"), after the -c argument\n\
+            --command   quotes (\"\"), after the -c argument\n\
                         to add it to [TEXT].\n\
             -u:         The commands will be updated every\n\
-            (--update)  n-th update (set by delay\n\
+            --update    n-th update (set by delay\n\
                         parameter, n should be passed\n\
                         after \"-u\").\n\
                         Default: off (0)\n\
-            -s:             If the text should rotate,\n\
-            (--separator)   this string will be appended\n\
-                            to the end of the text.\n\
+            -s:         If the text should rotate,\n\
+            --separator this string will be appended\n\
+                        to the end of the text.\n\
+            -t:         Set command to get current\n\
+            --status    playback status.\n\
         \n\
         TEXT:\n\
             Add either strings or commands (-c) to the text\n\
@@ -86,7 +89,7 @@ void printHelp(){
 }
 
 void invalidArgs(char* reason){
-    printf(
+    fprintf(stderr,
         "Invalid usage of cscroll: %s\
 Run \"cscroll -h\" for help.\n\
     \n", reason);
@@ -172,6 +175,8 @@ void parseArgs(int argc, char* argv[]){
                 setUpdate(argv[++i]);
             else if (strcmp(str, "separator") == 0)
                 setUpdate(argv[++i]);
+            else if (strcmp(str, "status") == 0)
+                statusCommand = argv[++i];
             else if (strcmp(str, "command") == 0)
                 strcat(full, getStdout(argv[++i]));
             else{
@@ -194,6 +199,8 @@ void parseArgs(int argc, char* argv[]){
                 case 'u':   setUpdate(argv[++i]);
                             break;
                 case 's':   separator = argv[++i];
+                            break;
+                case 't':   statusCommand = argv[++i];
                             break;
                 case 'c':   strcat(full, getStdout(argv[++i]));
                             break;
@@ -227,6 +234,8 @@ void updateArgs(int argc, char* argv[]){
                 i++;
             else if (strcmp(str, "separator") == 0)
                 i++;
+            else if (strcmp(str, "status") == 0)
+                i++;
             else if (strcmp(str, "command") == 0)
                 strcat(temp, getStdout(argv[++i]));
             continue;
@@ -236,7 +245,8 @@ void updateArgs(int argc, char* argv[]){
                 case 'd':
                 case 'l':
                 case 'u':
-                case 's':   i++;
+                case 's':
+                case 't':   i++;
                             break;
                 case 'c':   strcat(temp, getStdout(argv[++i]));
                             break;
@@ -277,12 +287,6 @@ void rotateText(){
 
 }
 
-char* playerStatus(){
-
-    
-
-}
-
 int main(int argc, char* argv[]){
 
     setlocale(LC_ALL, "");
@@ -295,11 +299,31 @@ int main(int argc, char* argv[]){
         return(0);
 
     while (1){
+        
+        char* status = getStdout(statusCommand);
 
-        if (strlen(full) > len || forceRotate)
-            rotateText();
+        if (strcmp(status, "Playing") == 0){
+
+            if (strlen(full) > len || forceRotate)
+                rotateText();
+            else
+                printf(full);
+
+        }
+        else if (strcmp(status, "Paused") == 0){
+
+            if (strlen(full) > len || forceRotate){
+                rotateText();
+                offset--;
+            }
+            else
+                printf(full);
+
+        }
         else
-            printf(full);
+            printf("No player is running");
+
+
 
         offset++;
         if (offset >= strlen(full))

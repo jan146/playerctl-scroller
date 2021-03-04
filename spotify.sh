@@ -1,6 +1,7 @@
 #!/bin/bash
 
 PLAYER="spotify"
+DELAY="0.2"
 
 GETPLAYER="dbus-send --print-reply \
 --dest=org.freedesktop.DBus \
@@ -54,4 +55,4 @@ string:PlaybackStatus \
 STATUS=$(eval $STATUSCOMMAND)
 echo $STATUS
 
-# cscroll -l 25 -d 0.1 -u 5 -c "$ARTISTCOMMAND" " - " -c "$TITLECOMMAND" -s ""
+# cscroll -l 25 -d $DELAY -u 5 -c "$ARTISTCOMMAND" " - " -c "$TITLECOMMAND" -s "" -b "$STATUSCOMMAND"
