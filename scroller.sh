@@ -55,4 +55,4 @@ string:PlaybackStatus \
 STATUS=$(eval $STATUSCOMMAND)
 echo $STATUS
 
-# cscroll -l 25 -d $DELAY -u 5 -c "$ARTISTCOMMAND" " - " -c "$TITLECOMMAND" -s "" -b "$STATUSCOMMAND"
+playerctl-scroller -l 25 -d $DELAY -u 5 -c "$ARTISTCOMMAND" " - " -c "$TITLECOMMAND" -s "" -b "$STATUSCOMMAND"
