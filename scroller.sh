@@ -112,30 +112,30 @@ string:PlaybackStatus \
 PID=$(pgrep -a "polybar" | grep "$BAR" | cut -d" " -f1)
 
 force(){
-playerctl-scroller \
--l $LENGTH \
--d $DELAY -u $INTERVAL \
--t "$STATUSCOMMAND" \
--p $PID \
--m "$MODULE" \
--f \
--c "$ARTISTCOMMAND" \
-"$MIDDLE" \
--c "$TITLECOMMAND" \
--s "$SEPARATOR"
+    playerctl-scroller \
+    -l $LENGTH \
+    -d $DELAY -u $INTERVAL \
+    -t "$STATUSCOMMAND" \
+    -p $PID \
+    -m "$MODULE" \
+    -f \
+    -c "$ARTISTCOMMAND" \
+    "$MIDDLE" \
+    -c "$TITLECOMMAND" \
+    -s "$SEPARATOR"
 }
 
 noForce(){
-playerctl-scroller \
--l $LENGTH \
--d $DELAY -u $INTERVAL \
--t "$STATUSCOMMAND" \
--p $PID \
--m "$MODULE" \
--c "$ARTISTCOMMAND" \
-"$MIDDLE" \
--c "$TITLECOMMAND" \
--s "$SEPARATOR"
+    playerctl-scroller \
+    -l $LENGTH \
+    -d $DELAY -u $INTERVAL \
+    -t "$STATUSCOMMAND" \
+    -p $PID \
+    -m "$MODULE" \
+    -c "$ARTISTCOMMAND" \
+    "$MIDDLE" \
+    -c "$TITLECOMMAND" \
+    -s "$SEPARATOR"
 }
 
 if [ $FORCE = "1" ]; then
