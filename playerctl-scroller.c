@@ -31,6 +31,7 @@ char* getStdout(char *command){
     fp = popen(command, "r");
 
     if (fp == NULL){
+        fflush(stdout);
         fprintf(stderr, "Command did not run properly\n");
         exit(1);
     }
@@ -126,25 +127,21 @@ void setUpdate(char* u){
 }
 
 void setSeparator(char* s){
-    printf("separator: %d\n", strlen(s)+1);
     separator = (char*) malloc(strlen(s)+1);
     separator = s;
 }
 
 void setPid(char* p){
-    printf("pid: %d\n", strlen(p)+1);
     pid = (char*) malloc(strlen(p)+1);
     pid = p;
 }
 
 void setModule(char* m){
-    printf("module: %d\n", strlen(m)+1);
     module = (char*) malloc(strlen(m)+1);
     module = m;
 }
 
 void setStatusCommand(char* sc){
-    printf("status command: %d\n", strlen(sc)+1);
     statusCommand = (char*) malloc(strlen(sc)+1);
     statusCommand = sc;
 }
@@ -308,7 +305,8 @@ void updateButton(int playing, int paused){
         strcat(message, " hook ");
         removeNL(module);
         strcat(message, module);
-        strcat(message, (playing == 0) ? " 2" : " 1");
+        strcat(message, (playing == 0) ? " 1" : " 2");
+        getStdout(message);
 
     }
 
@@ -372,10 +370,9 @@ int main(int argc, char* argv[]){
         offset++;
         if (offset >= strlen(full))
             offset -= strlen(full);
-        if (update > 0 && offset % update == 0){
+        if (update > 0 && offset % update == 0)
             updateArgs(argc, argv);
-            updateButton(playing, paused);
-        }
+        updateButton(playing, paused);
         
         printf("\n");
         fflush(stdout);

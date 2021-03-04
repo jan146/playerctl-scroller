@@ -111,7 +111,7 @@ PID=$(pgrep -a "polybar" | grep "$BAR" | cut -d" " -f1)
 
 # [[ $FORCE = 0 ]] && echo "Zero" || echo "One"
 
-./playerctl-scroller \
+/home/jan/Downloads/playerctl-scroller/playerctl-scroller \
 -l $LENGTH \
 -d $DELAY -u $INTERVAL \
 -t "$STATUSCOMMAND" \
