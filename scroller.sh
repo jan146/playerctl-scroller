@@ -11,6 +11,7 @@ BAR="example"
 # bar that is defined above this.
 # Leave blank to disable play/pause
 # button functionality.
+# MODULE=""
 MODULE="spotify-play-pause"
 
 # Set the name of desired mpris player,
@@ -31,6 +32,7 @@ LENGTH="25"
 # If force is set to "1", the text
 # will rotate, even if it is not
 # too long.
+# FORCE="1"
 FORCE="0"
 
 # Set a separator for the text.
@@ -109,13 +111,35 @@ string:PlaybackStatus \
 
 PID=$(pgrep -a "polybar" | grep "$BAR" | cut -d" " -f1)
 
-# [[ $FORCE = 0 ]] && echo "Zero" || echo "One"
-
-/home/jan/Downloads/playerctl-scroller/playerctl-scroller \
+force(){
+playerctl-scroller \
 -l $LENGTH \
 -d $DELAY -u $INTERVAL \
 -t "$STATUSCOMMAND" \
 -p $PID \
 -m "$MODULE" \
--c "$ARTISTCOMMAND" "$MIDDLE" -c "$TITLECOMMAND" \
+-f \
+-c "$ARTISTCOMMAND" \
+"$MIDDLE" \
+-c "$TITLECOMMAND" \
 -s "$SEPARATOR"
+}
+
+noForce(){
+playerctl-scroller \
+-l $LENGTH \
+-d $DELAY -u $INTERVAL \
+-t "$STATUSCOMMAND" \
+-p $PID \
+-m "$MODULE" \
+-c "$ARTISTCOMMAND" \
+"$MIDDLE" \
+-c "$TITLECOMMAND" \
+-s "$SEPARATOR"
+}
+
+if [ $FORCE = "1" ]; then
+    force
+else
+    noForce
+fi
