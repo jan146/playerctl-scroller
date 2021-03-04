@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-O2
+CFLAGS=-O2 -std=gnu11
 
 playerctl-scroller: playerctl-scroller.c
 	$(CC) -o playerctl-scroller playerctl-scroller.c $(CFLAGS) && \
