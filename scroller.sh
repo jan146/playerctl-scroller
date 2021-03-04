@@ -122,7 +122,7 @@ force(){
     -c "$ARTISTCOMMAND" \
     "$MIDDLE" \
     -c "$TITLECOMMAND" \
-    -s "$SEPARATOR"
+    -s "$SEPARATOR" 2> /dev/null
 }
 
 noForce(){
@@ -135,7 +135,7 @@ noForce(){
     -c "$ARTISTCOMMAND" \
     "$MIDDLE" \
     -c "$TITLECOMMAND" \
-    -s "$SEPARATOR"
+    -s "$SEPARATOR" 2> /dev/null
 }
 
 if [ $FORCE = "1" ]; then
