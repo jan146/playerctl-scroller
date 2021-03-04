@@ -32,7 +32,7 @@ char* getStdout(char *command){
 
     if (fp == NULL){
         fflush(stdout);
-        fprintf(stderr, "Command did not run properly\n");
+        // fprintf(stderr, "Command did not run properly\n");
         exit(1);
     }
 
