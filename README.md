@@ -5,7 +5,7 @@ Backend is based on <a href="https://github.com/jan146/Cscroll">Cscroll</a>.<br>
 Frontend is based on <a href="https://github.com/PrayagS/polybar-spotify">polybar-spotify</a>.<br>
 All credit for the idea goes to the original creator.
 
-# Installation
+## Installation
 
 Before installing, make sure you have installed all the required dependencies (listed below).
 
@@ -16,7 +16,7 @@ sudo make
 make config
 ```
 
-# Configuration
+## Configuration
 
 After installation, add the following modules to the config in `~/.config/polybar/config`:
 
@@ -63,7 +63,7 @@ modules-left = spotify spotify-prev spotify-play-pause spotify-next
 Now you can configure the `scroller.sh` file, located in `~/.config/polybar/scripts`.
 There, you can adjust numerous parameters, such as the delay between scrolling a single character (i. e. scrolling speed), update frequency, player, text format, length of the text ...
 
-# Switch player
+## Switch player
 
 If you want to switch to, say `vlc` as your preffered media player, you have to do the following:<br>
 In the polybar modules (`~/.config/polybar/config`), change the `click-left` options. For instance:
@@ -92,7 +92,7 @@ PLAYER="vlc"
 
 You can view all the available (currently active) players by running `playerctl -l`.<br>
 
-# Default player
+## Default player
 
 There is also the `playerctl` option, which will use the player that was last active.<br>
 This can be enabled by ommiting the `-p` parameter:
@@ -109,14 +109,14 @@ and editing the `scroller.sh` file:
 PLAYER="playerctl"
 ```
 
-# Why
+## Why
 
 All credit for the idea goes to the <a href="https://github.com/PrayagS/polybar-spotify">original creator</a>.
 
 This solution is a bit more optimized, since it communicates directly with the dbus interface, instead of using playerctl.
 Along with other performance optimizations, this solution yields much lower cpu usage, without making any significant sacrifices, which was my original goal. 
 
-# Dependencies
+## Dependencies
 * <a href="https://github.com/git-guides/install-git">git</a> (to clone the repo)
 * <a href="https://gcc.gnu.org/releases.html">gcc</a> (C compiler)
 * base-devel
