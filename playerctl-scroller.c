@@ -315,12 +315,10 @@ void updateButton(int playing, int paused){
 
 }
 
-void rotateText(int negOffset){
+void rotateText(){
 
-    int length = strlen(full);
-    negOffset %= length;
     for (int i = 0; i < len; i++){
-        char* c = full+((offset+i-negOffset+length)%length);
+        char* c = full+((offset+i+strlen(full)-1)%strlen(full));
         if (isprint(*c))
             printf("%c", *c);
         else {
@@ -346,10 +344,10 @@ int main(int argc, char* argv[]){
     parseArgs(argc, argv);
     // printArgs(argc, argv);
     
-    int negOffset = -update;
     char* statusCommand = (char*) malloc(commandLength);
     strcpy(statusCommand, script);
     strcat(statusCommand, " --status");
+    int time = 0;
 
     while (1){
 
@@ -368,39 +366,32 @@ int main(int argc, char* argv[]){
 
         if (playing == 0){
 
-            offset -= negOffset;
-            negOffset = 0;
-            if (strlen(full) > len || forceRotate){
-                //printf("\nfull: [%s]\n", full);
-                rotateText(0);
-            }
+            offset++;
+            if (strlen(full) > len || forceRotate)
+                rotateText();
             else
                 printf(full);
 
         }
         else if (paused == 0){
 
-            negOffset++;
-            if (strlen(full) > len || forceRotate){
-                //printf("\nfull: [%s]\n", full);
-                rotateText(negOffset);
-            }
+            if (strlen(full) > len || forceRotate)
+                rotateText();
             else
                 printf(full);
 
         }
 
-        else{
+        else
             printf("No player is running");
-            negOffset = 0;
-        }
 
-        offset++;
+        time++;
         if (offset >= strlen(full))
             offset -= strlen(full);
 
-        if (update > 0 && offset % update == 0 && offline != 0)
+        if (update > 0 && time % update == 0 && offline != 0)
             updateArgs(argc, argv, dest);
+
         updateButton(playing, paused);
         
         printf("\n");
