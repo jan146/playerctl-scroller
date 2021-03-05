@@ -317,8 +317,10 @@ void updateButton(int playing, int paused){
 
 void rotateText(int negOffset){
 
+    int length = strlen(full);
+    negOffset %= length;
     for (int i = 0; i < len; i++){
-        char* c = full+((offset+i-negOffset)%strlen(full));
+        char* c = full+((offset+i-negOffset+length)%length);
         if (isprint(*c))
             printf("%c", *c);
         else {
@@ -344,12 +346,10 @@ int main(int argc, char* argv[]){
     parseArgs(argc, argv);
     // printArgs(argc, argv);
     
-    int negOffset = 0;
+    int negOffset = -update;
     char* statusCommand = (char*) malloc(commandLength);
     strcpy(statusCommand, script);
     strcat(statusCommand, " --status");
-
-    int beginning = 1;
 
     while (1){
 
@@ -361,18 +361,26 @@ int main(int argc, char* argv[]){
             dest = status+i+1;
             status[i] = '\0';
         }
-        else
-            beginning = 1;
 
         int playing = strcmp(status, "Playing");
         int paused = strcmp(status, "Paused");
         int offline = strcmp(status, "OFFLINE");
 
-        if (playing == 0 || paused == 0){
-            
-            offset = (playing == 0) ? offset - negOffset : offset;
-            negOffset = (playing == 0 || beginning) ? 0 : negOffset + 1;
+        if (playing == 0){
 
+            offset -= negOffset;
+            negOffset = 0;
+            if (strlen(full) > len || forceRotate){
+                //printf("\nfull: [%s]\n", full);
+                rotateText(0);
+            }
+            else
+                printf(full);
+
+        }
+        else if (paused == 0){
+
+            negOffset++;
             if (strlen(full) > len || forceRotate){
                 //printf("\nfull: [%s]\n", full);
                 rotateText(negOffset);
@@ -391,10 +399,8 @@ int main(int argc, char* argv[]){
         if (offset >= strlen(full))
             offset -= strlen(full);
 
-        if (update > 0 && offset % update == 0 && offline != 0){
-            beginning = 0;
+        if (update > 0 && offset % update == 0 && offline != 0)
             updateArgs(argc, argv, dest);
-        }
         updateButton(playing, paused);
         
         printf("\n");
