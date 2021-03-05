@@ -10,13 +10,15 @@ int update = 0;
 int len = 25;
 int forceRotate = 0;
 char* separator = NULL;
-char* statusCommand = NULL;
 char* pid = NULL;
 char* module = NULL;
+char* player = NULL;
+char* script = NULL;
 
-char* full = NULL;
+char* full;
 int offset = 0;
 const int maxLength = 1000;
+const int commandLength = 250;
 
 void removeNL(char* arr){
     if (arr[strlen(arr)-1] == '\n')
@@ -31,7 +33,7 @@ char* getStdout(char *command){
     fp = popen(command, "r");
 
     if (fp == NULL){
-        fflush(stdout);
+        // fflush(stdout);
         // fprintf(stderr, "Command did not run properly\n");
         exit(1);
     }
@@ -78,8 +80,12 @@ void printHelp(){
             -s:         If the text should rotate,\n\
             --separator this string will be appended\n\
                         to the end of the text.\n\
-            -t:         Set command to get current\n\
-            --status    playback status.\n\
+            -p:         Set player to get current\n\
+            --player    playback status from.\n\
+            -i:         Set the pid of the polybar module.\n\
+            --pid       \n\
+            -m:         Set the name of the polybar module.\n\
+            --module    \n\
         \n\
         TEXT:\n\
             Add either strings or commands (-c) to the text\n\
@@ -127,8 +133,13 @@ void setUpdate(char* u){
 }
 
 void setSeparator(char* s){
-    separator = (char*) malloc(100);
+    separator = (char*) malloc(strlen(s)+1);
     separator = s;
+}
+
+void setPlayer(char* p){
+    player = (char*) malloc(strlen(p)+1);
+    player = p;
 }
 
 void setPid(char* p){
@@ -141,9 +152,9 @@ void setModule(char* m){
     module = m;
 }
 
-void setStatusCommand(char* sc){
-    statusCommand = (char*) malloc(strlen(sc)+1);
-    statusCommand = sc;
+void setScript(char* s){
+    script = (char*) malloc(strlen(s)+1);
+    script = s;
 }
 
 int validChar(char c){
@@ -181,7 +192,7 @@ void printArgs(int argc, char* argv[]){
     printf("Force: [%d]\n", forceRotate);
     printf("Update: [%d]\n", update);
     printf("Separator: [%s]\n", separator);
-    printf("Status command: [%s]\n", statusCommand);
+    printf("Player: [%s]\n", player);
     printf("Pid: [%s]\n", pid);
     printf("Module: [%s]\n", module);
 
@@ -204,12 +215,14 @@ void parseArgs(int argc, char* argv[]){
                 setUpdate(argv[++i]);
             else if (strcmp(str, "separator") == 0)
                 setSeparator(argv[++i]);
+            else if (strcmp(str, "player") == 0)
+                setPlayer(argv[++i]);
             else if (strcmp(str, "pid") == 0)
                 setPid(argv[++i]);
             else if (strcmp(str, "module") == 0)
                 setModule(argv[++i]);
-            else if (strcmp(str, "status") == 0)
-                setStatusCommand(argv[++i]);
+            else if (strcmp(str, "script") == 0)
+                setScript(argv[++i]);
             else if (strcmp(str, "command") == 0)
                 strcat(full, getStdout(argv[++i]));
             else{
@@ -233,11 +246,13 @@ void parseArgs(int argc, char* argv[]){
                             break;
                 case 's':   setSeparator(argv[++i]);
                             break;
-                case 'p':   setPid(argv[++i]);
+                case 'p':   setPlayer(argv[++i]);
+                            break;
+                case 'i':   setPid(argv[++i]);
                             break;
                 case 'm':   setModule(argv[++i]);
                             break;
-                case 't':   setStatusCommand(argv[++i]);
+                case 'r':   setScript(argv[++i]);
                             break;
                 case 'c':   strcat(full, getStdout(argv[++i]));
                             break;
@@ -260,31 +275,15 @@ void parseArgs(int argc, char* argv[]){
 
 }
 
-void updateArgs(int argc, char* argv[]){
+void updateArgs(int argc, char* argv[], char* dest){
 
     char* temp = (char*) malloc(maxLength);
-    for (int i = 1; i < argc; i++){
-        if (argv[i][0] == '-' && argv[i][1] == '-'){
-            char* str = argv[i] + 2;
-            if (strcmp(str, "command") == 0)
-                strcat(temp, getStdout(argv[++i]));
-            else if (strcmp(str, "force") != 0)
-                i++;
-            continue;
-        }
-        else if (argv[i][0] == '-'){
+    char* updateCommand = (char*) malloc(commandLength);
 
-            switch (argv[i][1]){
-                case 'f':   break;
-                case 'c':   strcat(temp, getStdout(argv[++i]));
-                            break;
-                default:    i++;
-                            break;
-            }
-        }
-        else
-            strcat(temp, argv[i]);
-    }
+    strcpy(updateCommand, script);
+    strcat(updateCommand, " --update ");
+    strcat(updateCommand, dest);
+    strcpy(temp, getStdout(updateCommand));
 
     if ((strlen(temp) > len || forceRotate) && separator != NULL)
         strcat(temp, separator);
@@ -303,8 +302,8 @@ void updateButton(int playing, int paused){
     
     if (playing == 0 || paused == 0){
 
-        char* message = (char*) malloc(100);
-        strcat(message, "polybar-msg -p ");
+        char* message = (char*) malloc(commandLength);
+        strcpy(message, "polybar-msg -p ");
         strcat(message, pid);
         strcat(message, " hook ");
         removeNL(module);
@@ -340,19 +339,30 @@ int main(int argc, char* argv[]){
 
     setlocale(LC_ALL, "");
     full = (char*) malloc(maxLength);
+    full[0] = '\0';
 
     parseArgs(argc, argv);
     // printArgs(argc, argv);
-
-    if (full == NULL || strcmp(full, "") == 0)
-        return(0);
-
+    
     int negOffset = 0;
+    char* statusCommand = (char*) malloc(commandLength);
+    strcpy(statusCommand, script);
+    strcat(statusCommand, " --status");
+
     while (1){
-        
+
         char* status = getStdout(statusCommand);
+        char* dest = (char*) malloc(commandLength);
+
+        if (strcmp(status, "OFFLINE") != 0){
+            int i = strcspn(status, " ");
+            dest = status+i+1;
+            status[i] = '\0';
+        }
+
         int playing = strcmp(status, "Playing");
         int paused = strcmp(status, "Paused");
+        int offline = strcmp(status, "OFFLINE");
 
         if (playing == 0 || paused == 0){
             
@@ -375,8 +385,8 @@ int main(int argc, char* argv[]){
         if (offset >= strlen(full))
             offset -= strlen(full);
 
-        if (update > 0 && offset % update == 0)
-            updateArgs(argc, argv);
+        if (update > 0 && offset % update == 0 && offline != 0)
+            updateArgs(argc, argv, dest);
         updateButton(playing, paused);
         
         printf("\n");

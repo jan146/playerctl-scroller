@@ -57,7 +57,7 @@ INTERVAL="5"
 
 ### END OF USER CONFIGURATION ###
 
-GETPLAYER="dbus-send --print-reply \
+GETDEST="dbus-send --print-reply \
 --dest=org.freedesktop.DBus \
 /org/freedesktop/DBus \
 org.freedesktop.DBus.ListNames \
@@ -65,7 +65,7 @@ org.freedesktop.DBus.ListNames \
 | grep $PLAYER \
 | sed 's/.*string \"//g;s/.$//g'"
 
-DEST=$(eval $GETPLAYER)
+DEST=$(eval $GETDEST)
 # echo $DEST
 
 ARTISTCOMMAND="dbus-send --print-reply \
@@ -110,33 +110,97 @@ string:PlaybackStatus \
 # echo $STATUS
 
 PID=$(pgrep -a "polybar" | grep "$BAR" | cut -d" " -f1)
+DIR="$(dirname "$(readlink -f "$0")")"
 
 force(){
-    playerctl-scroller \
+    ./playerctl-scroller \
     -l $LENGTH \
     -d $DELAY -u $INTERVAL \
-    -t "$STATUSCOMMAND" \
-    -p $PID \
+    -i $PID \
+    -p $PLAYER \
     -m "$MODULE" \
     -f \
-    -c "$ARTISTCOMMAND" \
-    "$MIDDLE" \
-    -c "$TITLECOMMAND" \
-    -s "$SEPARATOR" 2> /dev/null
+    -r "$DIR/scroller.sh" \ 
+    -s "$SEPARATOR"
 }
 
 noForce(){
-    playerctl-scroller \
+    ./playerctl-scroller \
     -l $LENGTH \
     -d $DELAY -u $INTERVAL \
-    -t "$STATUSCOMMAND" \
-    -p $PID \
+    -i $PID \
+    -p $PLAYER \
     -m "$MODULE" \
-    -c "$ARTISTCOMMAND" \
-    "$MIDDLE" \
-    -c "$TITLECOMMAND" \
-    -s "$SEPARATOR" 2> /dev/null
+    -r "$DIR/scroller.sh" \
+    -s "$SEPARATOR"
 }
+
+if [ "$1" = "--update" ]; then
+
+    DEST=$2
+
+    ARTISTCOMMAND="dbus-send --print-reply \
+    --dest="$DEST" \
+    /org/mpris/MediaPlayer2 \
+    org.freedesktop.DBus.Properties.Get \
+    string:"org.mpris.MediaPlayer2.Player" \
+    string:"Metadata" \
+    | grep -A 2 'artist' \
+    | tail -1 \
+    | sed 's/.*string \"//g;s/.$//g'"
+
+    TITLECOMMAND="dbus-send --print-reply \
+    --dest="$DEST" \
+    /org/mpris/MediaPlayer2 \
+    org.freedesktop.DBus.Properties.Get \
+    string:"org.mpris.MediaPlayer2.Player" \
+    string:"Metadata" \
+    | grep -A 1 'title' \
+    | tail -1 \
+    | sed 's/.*string \"//g;s/.$//g'"
+
+    ARTIST=$(eval $ARTISTCOMMAND)
+    TITLE=$(eval $TITLECOMMAND)
+    echo "$ARTIST - $TITLE"
+
+    exit 0
+
+fi
+
+if [ "$1" = "--status" ]; then
+
+    GETDEST="dbus-send --print-reply \
+    --dest=org.freedesktop.DBus \
+    /org/freedesktop/DBus \
+    org.freedesktop.DBus.ListNames \
+    | grep mpris \
+    | grep $PLAYER \
+    | sed 's/.*string \"//g;s/.$//g'"
+
+    DEST=$(eval $GETDEST)
+
+    if [[ -n "$DEST" ]]; then
+
+        STATUSCOMMAND="dbus-send --print-reply \
+        --dest="$DEST" \
+        /org/mpris/MediaPlayer2 \
+        org.freedesktop.DBus.Properties.Get \
+        string:org.mpris.MediaPlayer2.Player \
+        string:PlaybackStatus \
+        | grep variant \
+        | sed 's/.*string \"//g;s/.$//g'"
+
+        STATUS=$(eval $STATUSCOMMAND)
+        echo "$STATUS $DEST"
+
+        exit 0
+
+    else
+        echo "OFFLINE"
+        exit 0
+    fi
+
+fi
 
 if [ $FORCE = "1" ]; then
     force
