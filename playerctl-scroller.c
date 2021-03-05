@@ -349,6 +349,8 @@ int main(int argc, char* argv[]){
     strcpy(statusCommand, script);
     strcat(statusCommand, " --status");
 
+    int beginning = 1;
+
     while (1){
 
         char* status = getStdout(statusCommand);
@@ -359,6 +361,8 @@ int main(int argc, char* argv[]){
             dest = status+i+1;
             status[i] = '\0';
         }
+        else
+            beginning = 1;
 
         int playing = strcmp(status, "Playing");
         int paused = strcmp(status, "Paused");
@@ -367,10 +371,12 @@ int main(int argc, char* argv[]){
         if (playing == 0 || paused == 0){
             
             offset = (playing == 0) ? offset - negOffset : offset;
-            negOffset = (playing == 0) ? 0 : negOffset + 1;
+            negOffset = (playing == 0 || beginning) ? 0 : negOffset + 1;
 
-            if (strlen(full) > len || forceRotate)
+            if (strlen(full) > len || forceRotate){
+                //printf("\nfull: [%s]\n", full);
                 rotateText(negOffset);
+            }
             else
                 printf(full);
 
@@ -385,8 +391,10 @@ int main(int argc, char* argv[]){
         if (offset >= strlen(full))
             offset -= strlen(full);
 
-        if (update > 0 && offset % update == 0 && offline != 0)
+        if (update > 0 && offset % update == 0 && offline != 0){
+            beginning = 0;
             updateArgs(argc, argv, dest);
+        }
         updateButton(playing, paused);
         
         printf("\n");
