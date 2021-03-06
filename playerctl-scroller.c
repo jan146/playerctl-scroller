@@ -35,17 +35,19 @@ char* getStdout(char *command){
     if (fp == NULL){
         // fflush(stdout);
         // fprintf(stderr, "Command did not run properly\n");
+        pclose(fp);
         exit(1);
     }
 
     if (fgets(path, sizeof(path), fp) != NULL){
+
         char* ret = malloc(strlen(path) + 1);
         strcpy(ret, path);
+        pclose(fp);
         removeNL(ret);
         return (ret);
+    
     }
-
-    pclose(fp);
 
 }
 
@@ -309,7 +311,8 @@ void updateButton(int playing, int paused){
         removeNL(module);
         strcat(message, module);
         strcat(message, (playing == 0) ? " 1" : " 2");
-        getStdout(message);
+        strcat(message, " &> /dev/null ; exit 0");
+        system(message);
 
     }
 

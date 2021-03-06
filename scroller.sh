@@ -57,58 +57,6 @@ INTERVAL="5"
 
 ### END OF USER CONFIGURATION ###
 
-GETDEST="dbus-send --print-reply \
---dest=org.freedesktop.DBus \
-/org/freedesktop/DBus \
-org.freedesktop.DBus.ListNames \
-| grep mpris \
-| grep $PLAYER \
-| sed 's/.*string \"//g;s/.$//g'"
-
-DEST=$(eval $GETDEST)
-# echo $DEST
-
-ARTISTCOMMAND="dbus-send --print-reply \
---dest="$DEST" \
-/org/mpris/MediaPlayer2 \
-org.freedesktop.DBus.Properties.Get \
-string:"org.mpris.MediaPlayer2.Player" \
-string:"Metadata" \
-| grep -A 2 'artist' \
-| tail -1 \
-| sed 's/.*string \"//g;s/.$//g'"
-
-TITLECOMMAND="dbus-send --print-reply \
---dest="$DEST" \
-/org/mpris/MediaPlayer2 \
-org.freedesktop.DBus.Properties.Get \
-string:"org.mpris.MediaPlayer2.Player" \
-string:"Metadata" \
-| grep -A 1 'title' \
-| tail -1 \
-| sed 's/.*string \"//g;s/.$//g'"
-
-# echo $ARTISTCOMMAND
-# echo $TITLECOMMAND
-
-# ARTIST=$(eval $ARTISTCOMMAND)
-# TITLE=$(eval $TITLECOMMAND)
-
-# echo $ARTIST
-# echo $TITLE
-
-STATUSCOMMAND="dbus-send --print-reply \
---dest="$DEST" \
-/org/mpris/MediaPlayer2 \
-org.freedesktop.DBus.Properties.Get \
-string:org.mpris.MediaPlayer2.Player \
-string:PlaybackStatus \
-| grep variant \
-| sed 's/.*string \"//g;s/.$//g'"
-
-# STATUS=$(eval $STATUSCOMMAND)
-# echo $STATUS
-
 PID=$(pgrep -a "polybar" | grep "$BAR" | cut -d" " -f1)
 DIR="$(dirname "$(readlink -f "$0")")"
 
@@ -161,9 +109,7 @@ if [ "$1" = "--update" ]; then
 
     ARTIST=$(eval $ARTISTCOMMAND)
     TITLE=$(eval $TITLECOMMAND)
-    echo "$ARTIST - $TITLE"
-
-    exit 0
+    echo "$ARTIST - $TITLE" ; exit 0
 
 fi
 
@@ -191,13 +137,10 @@ if [ "$1" = "--status" ]; then
         | sed 's/.*string \"//g;s/.$//g'"
 
         STATUS=$(eval $STATUSCOMMAND)
-        echo "$STATUS $DEST"
-
-        exit 0
+        echo "$STATUS $DEST" ; exit 0
 
     else
-        echo "OFFLINE"
-        exit 0
+        echo "OFFLINE" ; exit 0
     fi
 
 fi
