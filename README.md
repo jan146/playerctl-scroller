@@ -95,7 +95,7 @@ You can view all the available (currently active) players by running `playerctl 
 ## Default player
 
 There is also the `playerctl` option, which will use the player that was last active.<br>
-This can be enabled by ommiting the `-p` parameter:
+This can be enabled by omitting the `-p` parameter:
 
 ```ini
 click-left = playerctl play-pause
