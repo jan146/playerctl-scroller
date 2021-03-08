@@ -109,7 +109,12 @@ if [ "$1" = "--update" ]; then
 
     ARTIST=$(eval $ARTISTCOMMAND)
     TITLE=$(eval $TITLECOMMAND)
-    echo "$ARTIST$MIDDLE$TITLE" ; exit 0
+    
+    if [[ -n "$ARTIST" ]]; then
+        echo "$ARTIST$MIDDLE$TITLE" ; exit 0
+    else
+        echo "$TITLE" ; exit 0
+    fi
 
 fi
 
