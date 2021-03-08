@@ -1,6 +1,9 @@
 # Compiled binary
 playerctl-scroller
 
+# VSCode files
+.vscode/*
+
 # Prerequisites
 *.d
 

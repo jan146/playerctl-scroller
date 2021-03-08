@@ -17,7 +17,7 @@ MODULE="spotify-play-pause"
 # Set the name of desired mpris player,
 # such as firefox, spotify, chromium,
 # vlc or simply just playerctl.
-PLAYER="spotify"
+PLAYER="playerctl"
 
 # Set delay (in seconds) between rotating 
 # a single character of text (lower
@@ -136,8 +136,13 @@ if [ "$1" = "--status" ]; then
         | grep variant \
         | sed 's/.*string \"//g;s/.$//g'"
 
-        STATUS=$(eval $STATUSCOMMAND)
-        echo "$STATUS $DEST" ; exit 0
+        STATUS=$(eval "$STATUSCOMMAND" 2> /dev/null)
+        
+        if [[ -n "$STATUS" ]]; then
+            echo "$STATUS $DEST" ; exit 0
+        else
+            echo "OFFLINE" ; exit 0
+        fi
 
     else
         echo "OFFLINE" ; exit 0

@@ -142,6 +142,19 @@ void setSeparator(char* s){
 void setPlayer(char* p){
     player = (char*) malloc(strlen(p)+1);
     player = p;
+    
+    // playerctld destionation is not
+    // initialized automatically
+    if (strstr(p, "playerctl") != NULL) {
+        char pctl[] = "dbus-send --print-reply \
+        --dest=org.mpris.MediaPlayer2.playerctld \
+        /org/mpris/MediaPlayer2 \
+        org.freedesktop.DBus.Properties.GetAll \
+        string:\"org.mpris.MediaPlayer2.Player\" \
+        &> /dev/null";
+        system(pctl);
+    }
+
 }
 
 void setPid(char* p){
@@ -353,7 +366,7 @@ int main(int argc, char* argv[]){
     int time = 0;
 
     while (1){
-
+        
         char* status = getStdout(statusCommand);
         char* dest = (char*) malloc(commandLength);
 
@@ -362,7 +375,7 @@ int main(int argc, char* argv[]){
             dest = status+i+1;
             status[i] = '\0';
         }
-
+        
         int playing = strcmp(status, "Playing");
         int paused = strcmp(status, "Paused");
         int offline = strcmp(status, "OFFLINE");
@@ -384,19 +397,17 @@ int main(int argc, char* argv[]){
                 printf(full);
 
         }
-
         else
             printf("No player is running");
 
         time++;
         if (offset >= strlen(full))
-            offset -= strlen(full);
+            offset -= strlen(full); 
 
         if (update > 0 && time % update == 0 && offline != 0)
             updateArgs(argc, argv, dest);
-
         updateButton(playing, paused);
-        
+
         printf("\n");
         fflush(stdout);
         usleep(1000000*delay);
