@@ -17,7 +17,7 @@ MODULE="spotify-play-pause"
 # Set the name of desired mpris player,
 # such as firefox, spotify, chromium,
 # vlc or simply just playerctl.
-PLAYER="playerctl"
+PLAYER="spotify"
 
 # Set delay (in seconds) between rotating 
 # a single character of text (lower
