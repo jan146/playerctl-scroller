@@ -39,11 +39,11 @@ FORCE="0"
 # If the text should rotate, then
 # this string will be appended to
 # the end of the text.
-SEPARATOR=""
+SEPARATOR="  "
 
 # Set text between the artist and
 # title texts.
-MIDDLE=" - "
+MIDDLE=" — "
 
 # The text will be updated every INTERVAL
 # rotations, i. e. if DELAY is set to 0.2

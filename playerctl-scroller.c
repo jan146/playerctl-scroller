@@ -172,30 +172,6 @@ void setScript(char* s){
     script = s;
 }
 
-int validChar(char c){
-    return isprint(c) || (c >= 0 && c <= 31);
-}
-
-int invalidCharsBefore(char* c){
-    int counter = 0;
-    c--;
-    while (!validChar(*c)){
-        counter++;
-        c--;
-    }
-    return counter;
-}
-
-int invalidCharsAfter(char* c){
-    int counter = 0;
-    c++;
-    while (!validChar(*c)){
-        counter++;
-        c++;
-    }
-    return counter;
-}
-
 void printArgs(int argc, char* argv[]){
 
     printf("%d: ", argc);
@@ -333,21 +309,54 @@ void updateButton(int playing, int paused){
 
 void rotateText(){
 
-    for (int i = 0; i < len; i++){
-        char* c = full+((offset+i+strlen(full)-1)%strlen(full));
-        if (isprint(*c))
-            printf("%c", *c);
-        else {
-            if (invalidCharsBefore(c) == invalidCharsAfter(c)){
-                char* first = c - invalidCharsBefore(c);
-                char* last = c + invalidCharsAfter(c); 
-                for (int j = 0; j < (last - first + 1); j++)
-                    printf("%c", *(first+j));
-            }
-            else
-                printf("%c", ' ');
+    // skip wide character parts 
+    // (bytes after first one)
+    // and go to next actual character
+    int wideCharOffset = 0;
+
+    // increase offset by first
+    // character width for next
+    // rotation to start at the
+    // actual next character
+    int firstCharWidth = 1;
+
+    // count any wide characters
+    // as double wide to prevent
+    // a wide text output
+    int shortenLength = 0;
+    
+    for (int i = 0; i < len - shortenLength; i++){
+        char* ptr = full+((offset+i+strlen(full)-1+wideCharOffset)%strlen(full));
+        char c = *ptr;
+
+        if (c >= -62 && c <= -33){
+            // 2 byte wide character
+            printf("%c%c", c, *(ptr+1));
+            wideCharOffset += 1;
+            if (i == 0)
+                firstCharWidth = 2;
+            shortenLength++;
         }
+        else if (c >= -32 && c <= -17){
+            // 3 byte wide character
+            printf("%c%c%c", c, *(ptr+1), *(ptr+2));
+            wideCharOffset += 2;
+            if (i == 0)
+                firstCharWidth = 3;
+            shortenLength++;
+        }
+        else if (c >= -16 && c <= -12){
+            // 4 byte wide character
+            printf("%c%c%c%c", c, *(ptr+1), *(ptr+2), *(ptr+3));
+            wideCharOffset += 3;
+            if (i == 0)
+                firstCharWidth = 4;
+            shortenLength++;
+        }
+        else // default (1 byte wide)
+            printf("%c", c);
     }
+    offset += (firstCharWidth - 1);
 
 }
 
