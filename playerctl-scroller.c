@@ -4,6 +4,7 @@
 #include <locale.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <wchar.h>
 
 float delay = 0.1;
 int update = 0;
@@ -331,27 +332,63 @@ void rotateText(){
 
         if (c >= -62 && c <= -33){
             // 2 byte wide character
-            printf("%c%c", c, *(ptr+1));
+            wchar_t wideChar[2];
+            char* unicodeString = malloc((2+1) * sizeof(char));
+            unicodeString[0] = c;
+            unicodeString[1] = *(ptr+1);
+            unicodeString[2] = L'\0';
+
+            mbstowcs(wideChar, unicodeString, 2);
+            printf("%ls", wideChar);
+            
             wideCharOffset += 1;
             if (i == 0)
                 firstCharWidth = 2;
-            shortenLength++;
+            
+            int width = wcwidth(*wideChar);
+            if (width > 1)
+                shortenLength += width - 1;
         }
         else if (c >= -32 && c <= -17){
             // 3 byte wide character
-            printf("%c%c%c", c, *(ptr+1), *(ptr+2));
+            wchar_t wideChar[2];
+            char* unicodeString = malloc((3+1) * sizeof(char));
+            unicodeString[0] = c;
+            unicodeString[1] = *(ptr+1);
+            unicodeString[2] = *(ptr+2);
+            unicodeString[3] = L'\0';
+
+            mbstowcs(wideChar, unicodeString, 2);
+            printf("%ls", wideChar);
+            
             wideCharOffset += 2;
             if (i == 0)
                 firstCharWidth = 3;
-            shortenLength++;
+            
+            int width = wcwidth(*wideChar);
+            if (width > 1)
+                shortenLength += width - 1;
         }
         else if (c >= -16 && c <= -12){
             // 4 byte wide character
-            printf("%c%c%c%c", c, *(ptr+1), *(ptr+2), *(ptr+3));
+            wchar_t wideChar[2];
+            char* unicodeString = malloc((4+1) * sizeof(char));
+            unicodeString[0] = c;
+            unicodeString[1] = *(ptr+1);
+            unicodeString[2] = *(ptr+2);
+            unicodeString[3] = *(ptr+3);
+            unicodeString[4] = L'\0';
+
+            mbstowcs(wideChar, unicodeString, 2);
+            printf("%ls", wideChar);
+            
             wideCharOffset += 3;
             if (i == 0)
                 firstCharWidth = 4;
-            shortenLength++;
+            
+            int width = wcwidth(*wideChar);
+            if (width > 1)
+                shortenLength += width - 1;
         }
         else // default (1 byte wide)
             printf("%c", c);
@@ -363,6 +400,7 @@ void rotateText(){
 int main(int argc, char* argv[]){
 
     setlocale(LC_ALL, "");
+
     full = (char*) malloc(maxLength);
     full[0] = '\0';
 
@@ -378,33 +416,24 @@ int main(int argc, char* argv[]){
         
         char* status = getStdout(statusCommand);
         char* dest = (char*) malloc(commandLength);
-
+        
         if (strcmp(status, "OFFLINE") != 0){
             int i = strcspn(status, " ");
             dest = status+i+1;
             status[i] = '\0';
         }
         
+        if (time == 0)
+            updateArgs(argc, argv, dest);
+
         int playing = strcmp(status, "Playing");
         int paused = strcmp(status, "Paused");
         int offline = strcmp(status, "OFFLINE");
 
-        if (playing == 0){
-
-            offset++;
-            if (strlen(full) > len || forceRotate)
-                rotateText();
-            else
-                printf(full);
-
-        }
-        else if (paused == 0){
-
-            if (strlen(full) > len || forceRotate)
-                rotateText();
-            else
-                printf(full);
-
+        if (playing == 0 || paused == 0){
+            if (playing == 0 && (forceRotate || strlen(full) > len))
+                offset++;
+            rotateText();
         }
         else
             printf("No player is running");
