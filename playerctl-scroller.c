@@ -332,9 +332,6 @@ void rotateText(int dontRotate){
     int printableChars = (strlen(full) < len) ? strlen(full) : len;
     
     for (int i = 0; i < printableChars - shortenLength - ((dontRotate) ? wideCharOffset : 0); i++){
-        //printf("%d\n", printableChars - ((dontRotate) ? wideCharOffset : 0));
-        //printf("bla: %d %d %d\n", printableChars, shortenLength, wideCharOffset);
-        //printf("bla2: %d\n", dontRotate);
         char* ptr = full+((offset+i+wideCharOffset)%strlen(full));
         char c = *ptr;
 
