@@ -326,8 +326,13 @@ void rotateText(){
     // a wide text output
     int shortenLength = 0;
     
-    for (int i = 0; i < len - shortenLength; i++){
-        char* ptr = full+((offset+i+strlen(full)-1+wideCharOffset)%strlen(full));
+    // Don't print "len" characters
+    // if "full" is shorter than
+    // the value of "len"
+    int printableChars = (strlen(full) < len) ? strlen(full) : len;
+
+    for (int i = 0; i < printableChars - shortenLength; i++){
+        char* ptr = full+((offset+i+wideCharOffset)%strlen(full));
         char c = *ptr;
 
         if (c >= -62 && c <= -33){

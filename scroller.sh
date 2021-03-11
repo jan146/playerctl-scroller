@@ -61,7 +61,7 @@ PID=$(pgrep -a "polybar" | grep "$BAR" | cut -d" " -f1)
 DIR="$(dirname "$(readlink -f "$0")")"
 
 force(){
-    playerctl-scroller \
+    ./playerctl-scroller \
     -l $LENGTH \
     -d $DELAY -u $INTERVAL \
     -i $PID \
@@ -73,7 +73,7 @@ force(){
 }
 
 noForce(){
-    playerctl-scroller \
+    ./playerctl-scroller \
     -l $LENGTH \
     -d $DELAY -u $INTERVAL \
     -i $PID \
