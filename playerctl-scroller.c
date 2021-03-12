@@ -443,8 +443,12 @@ int main(int argc, char* argv[]){
             else
                 rotateText(1);
         }
-        else if (paused == 0)
-            rotateText(1);
+        else if (paused == 0){
+            if (strlen(full) > len)
+                rotateText(0);
+            else
+                rotateText(1);
+        }
         else
             printf("No player is running");
 
