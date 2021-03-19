@@ -105,6 +105,7 @@ void invalidArgs(char* reason){
         "Invalid usage of cscroll: %s\
 Run \"cscroll -h\" for help.\n\
     \n", reason);
+    free(reason);
     exit(1);
 }
 
@@ -137,12 +138,12 @@ void setUpdate(char* u){
 
 void setSeparator(char* s){
     separator = (char*) malloc(strlen(s)+1);
-    separator = s;
+    strcpy(separator, s);
 }
 
 void setPlayer(char* p){
     player = (char*) malloc(strlen(p)+1);
-    player = p;
+    strcpy(player, p);
     
     // playerctld destionation is not
     // initialized automatically
@@ -160,17 +161,17 @@ void setPlayer(char* p){
 
 void setPid(char* p){
     pid = (char*) malloc(strlen(p)+1);
-    pid = p;
+    strcpy(pid, p);
 }
 
 void setModule(char* m){
     module = (char*) malloc(strlen(m)+1);
-    module = m;
+    strcpy(module, m);
 }
 
 void setScript(char* s){
     script = (char*) malloc(strlen(s)+1);
-    script = s;
+    strcpy(script, s);
 }
 
 void printArgs(int argc, char* argv[]){
@@ -275,15 +276,20 @@ void updateArgs(int argc, char* argv[], char* dest){
     strcpy(updateCommand, script);
     strcat(updateCommand, " --update ");
     strcat(updateCommand, dest);
-    strcpy(temp, getStdout(updateCommand));
+    char* ret = getStdout(updateCommand); 
+    strcpy(temp, ret);
 
     if ((strlen(temp) > len || forceRotate) && separator != NULL)
         strcat(temp, separator);
 
     if (strcmp(full, temp) != 0){
+        free(full);
         full = temp;
         offset = 0;
     }
+
+    free(ret);
+    free(updateCommand);
 
 }
 
@@ -303,6 +309,7 @@ void updateButton(int playing, int paused){
         strcat(message, (playing == 0) ? " 1" : " 2");
         strcat(message, " &> /dev/null ; exit 0");
         system(message);
+        free(message);
 
     }
 
@@ -353,6 +360,7 @@ void rotateText(int dontRotate){
             int width = wcwidth(*wideChar);
             if (width > 1)
                 shortenLength += width - 1;
+            free(unicodeString);
         }
         else if (c >= -32 && c <= -17){
             // 3 byte wide character
@@ -373,6 +381,7 @@ void rotateText(int dontRotate){
             int width = wcwidth(*wideChar);
             if (width > 1)
                 shortenLength += width - 1;
+            free(unicodeString);
         }
         else if (c >= -16 && c <= -12){
             // 4 byte wide character
@@ -394,6 +403,7 @@ void rotateText(int dontRotate){
             int width = wcwidth(*wideChar);
             if (width > 1)
                 shortenLength += width - 1;
+            free(unicodeString);
         }
         else // default (1 byte wide)
             printf("%c", c);
@@ -405,7 +415,6 @@ void rotateText(int dontRotate){
 int main(int argc, char* argv[]){
 
     setlocale(LC_ALL, "");
-
     full = (char*) malloc(maxLength);
     full[0] = '\0';
 
@@ -419,8 +428,8 @@ int main(int argc, char* argv[]){
 
     while (1){
         
-        char* status = getStdout(statusCommand);
-        char* dest = (char*) malloc(commandLength);
+        char* status = (char*) getStdout(statusCommand);
+        char* dest;
         
         if (strcmp(status, "OFFLINE") != 0){
             int i = strcspn(status, " ");
@@ -460,11 +469,21 @@ int main(int argc, char* argv[]){
             updateArgs(argc, argv, dest);
         updateButton(playing, paused);
 
+        free(status);
         printf("\n");
         fflush(stdout);
         usleep(1000000*delay);
 
     }
+    
+    free(separator);
+    free(pid);
+    free(module);
+    free(player);
+    free(script);
+    free(statusCommand);
+    free(full);
+    
     return(0);
 
 }
