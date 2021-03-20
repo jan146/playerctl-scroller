@@ -27,13 +27,13 @@ DELAY="0.2"
 # Set the maximum length of the text.
 # If the text is longer than LENGTH,
 # it will rotate, otherwise it will not.
-LENGTH="50"
+LENGTH="30"
 
 # If force is set to "1", the text
 # will rotate, even if it is not
 # too long.
 # FORCE="1"
-FORCE="1"
+FORCE="0"
 
 # Set a separator for the text.
 # If the text should rotate, then
@@ -59,7 +59,7 @@ INTERVAL="5"
 # you can set the amount of characters
 # that this module will shrink by
 # for every open workspace
-i3="7"
+i3="0"
 
 ### END OF USER CONFIGURATION ###
 
@@ -138,7 +138,7 @@ fi
 PID=$(pgrep -a "polybar" | grep "$BAR" | cut -d" " -f1)
 DIR="$(dirname "$(readlink -f "$0")")"
 
-RUNCOMMAND="playerctl-scroller \
+RUNCOMMAND="./playerctl-scroller \
     -l $LENGTH \
     -d $DELAY -u $INTERVAL \
     -i $PID \

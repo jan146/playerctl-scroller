@@ -495,17 +495,12 @@ int main(int argc, char* argv[]){
         int paused = strcmp(status, "Paused");
         int offline = strcmp(status, "OFFLINE");
 
-        if (playing == 0){
+        if (playing == 0 || paused == 0){
             if (forceRotate || strlen(full) > len){
-                offset++;
+                if (playing == 0)
+                    offset++;
                 rotateText(0);
             }
-            else
-                rotateText(1);
-        }
-        else if (paused == 0){
-            if (strlen(full) > len)
-                rotateText(0);
             else
                 rotateText(1);
         }
