@@ -27,13 +27,13 @@ DELAY="0.2"
 # Set the maximum length of the text.
 # If the text is longer than LENGTH,
 # it will rotate, otherwise it will not.
-LENGTH="25"
+LENGTH="50"
 
 # If force is set to "1", the text
 # will rotate, even if it is not
 # too long.
 # FORCE="1"
-FORCE="0"
+FORCE="1"
 
 # Set a separator for the text.
 # If the text should rotate, then
@@ -55,33 +55,13 @@ MIDDLE=" — "
 # resource usage.
 INTERVAL="5"
 
+# If you have the i3 workspaces module,
+# you can set the amount of characters
+# that this module will shrink by
+# for every open workspace
+i3="7"
+
 ### END OF USER CONFIGURATION ###
-
-PID=$(pgrep -a "polybar" | grep "$BAR" | cut -d" " -f1)
-DIR="$(dirname "$(readlink -f "$0")")"
-
-force(){
-    playerctl-scroller \
-    -l $LENGTH \
-    -d $DELAY -u $INTERVAL \
-    -i $PID \
-    -p $PLAYER \
-    -m "$MODULE" \
-    -f \
-    -r "$DIR/scroller.sh" \
-    -s "$SEPARATOR"
-}
-
-noForce(){
-    playerctl-scroller \
-    -l $LENGTH \
-    -d $DELAY -u $INTERVAL \
-    -i $PID \
-    -p $PLAYER \
-    -m "$MODULE" \
-    -r "$DIR/scroller.sh" \
-    -s "$SEPARATOR"
-}
 
 if [ "$1" = "--update" ]; then
 
@@ -155,8 +135,23 @@ if [ "$1" = "--status" ]; then
 
 fi
 
+PID=$(pgrep -a "polybar" | grep "$BAR" | cut -d" " -f1)
+DIR="$(dirname "$(readlink -f "$0")")"
+
+RUNCOMMAND="playerctl-scroller \
+    -l $LENGTH \
+    -d $DELAY -u $INTERVAL \
+    -i $PID \
+    -p $PLAYER \
+    -m \"$MODULE\" \
+    -r \"$DIR/scroller.sh\" \
+    -s \"$SEPARATOR\""
+
 if [ $FORCE = "1" ]; then
-    force
-else
-    noForce
+    RUNCOMMAND="$RUNCOMMAND -f"
 fi
+if [ $i3 -gt "0" ]; then
+    RUNCOMMAND="$RUNCOMMAND -3 $i3"
+fi
+
+eval $RUNCOMMAND

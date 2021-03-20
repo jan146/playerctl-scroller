@@ -8,7 +8,9 @@
 
 float delay = 0.1;
 int update = 0;
+int originalLen = 25;
 int len = 25;
+int i3 = 0;
 int forceRotate = 0;
 char* separator = NULL;
 char* pid = NULL;
@@ -26,7 +28,7 @@ void removeNL(char* arr){
         arr[strlen(arr)-1] = '\0';
 }
 
-char* getStdout(char *command){
+char* getStdout(char* command){
 
     FILE* fp;
     char path[100];
@@ -58,38 +60,58 @@ void printHelp(){
         OPTIONS:\n\
             -h:         Display this page.\n\
             --help      \n\
-            -d:         Delay in seconds\n\
-            --delay     example: cscroll -d 0.5 [TEXT]\n\
+            \n\
+            -d [seconds]:\n\
+            --delay     Delay in seconds\n\
+                        example: cscroll -d 0.5 [TEXT]\n\
                         this will rotate the text every\n\
                         half of a second (500 ms).\n\
                         Default: 0.1 (100 ms).\n\
-            -l:         The maximum length of [TEXT]\n\
-            --length    i. e. if the number of characters\n\
+                        \n\
+            -l [number of characters]:\n\
+            --length    The maximum length of [TEXT]\n\
+                        i. e. if the number of characters\n\
                         (in bytes) is equal or greater than\n\
                         this, it will rotate.\n\
                         Default: 25 characters.\n\
+                        \n\
             -f:         Force the text to rotate,\n\
             --force     even if it is not too long\n\
                         (longer than -l argument).\n\
                         Default: off.\n\
-            -c:         Place your desired command in double\n\
-            --command   quotes (\"\"), after the -c argument\n\
+                        \n\
+            -c [command]:\n\
+            --command   Place your desired command in double\n\
+                        quotes (\"\"), after the -c argument\n\
                         to add it to [TEXT].\n\
-            -u:         The commands will be updated every\n\
-            --update    n-th update (set by delay\n\
+                        \n\
+            -u [interval]:\n\
+            --update    The commands will be updated every\n\
+                        n-th update (set by delay\n\
                         parameter, n should be passed\n\
                         after \"-u\").\n\
                         Default: off (0)\n\
-            -s:         If the text should rotate,\n\
-            --separator this string will be appended\n\
+                        \n\
+            -s [string]:\n\
+            --separator If the text should rotate,\n\
+                        this string will be appended\n\
                         to the end of the text.\n\
-            -p:         Set player to get current\n\
-            --player    playback status from.\n\
-            -i:         Set the pid of the polybar module.\n\
-            --pid       \n\
-            -m:         Set the name of the polybar module.\n\
-            --module    \n\
-        \n\
+                        \n\
+            -p [player]:\n\
+            --player    Set player to get current\n\
+                        playback status from.\n\
+                        \n\
+            -i [pid]:\n\
+            --pid       Set the pid of the polybar module.\n\
+                        \n\
+            -m [module]:\n\
+            --module    Set the name of the polybar module.\n\
+                        \n\
+            -3 [space]: \n\
+            --i3        Set the number of spaces an i3\n\
+                        workspace element occupies.\n\
+                        Default: off (0)\n\
+                        \n\
         TEXT:\n\
             Add either strings or commands (-c) to the text\n\
             that you want to display.\n\
@@ -125,6 +147,16 @@ void setLength(char* l){
         invalidArgs(reason);
     }
     len = atoi(l);
+    originalLen = len;
+}
+
+void seti3(char* i){
+    if (atoi(i) <= 0){
+        char* reason = (char*) malloc(30 * sizeof(char) + sizeof(i));
+        sprintf(reason, "invalid i3 parameter \"%s\"\n", i);
+        invalidArgs(reason);
+    }
+    i3 = atoi(i);
 }
 
 void setUpdate(char* u){
@@ -182,6 +214,7 @@ void printArgs(int argc, char* argv[]){
     printf("\n");
     printf("Delay: [%f]\n", delay);
     printf("Length: [%d]\n", len);
+    printf("i3: [%d]\n", i3);
     printf("Force: [%d]\n", forceRotate);
     printf("Update: [%d]\n", update);
     printf("Separator: [%s]\n", separator);
@@ -202,6 +235,8 @@ void parseArgs(int argc, char* argv[]){
                 setDelay(argv[++i]);
             else if (strcmp(str, "length") == 0)
                 setLength(argv[++i]);
+            else if (strcmp(str, "i3") == 0)
+                seti3(argv[++i]);
             else if (strcmp(str, "force") == 0)
                 forceRotate = 1;
             else if (strcmp(str, "update") == 0)
@@ -232,6 +267,8 @@ void parseArgs(int argc, char* argv[]){
                 case 'd':   setDelay(argv[++i]);
                             break;
                 case 'l':   setLength(argv[++i]);
+                            break;
+                case '3':   seti3(argv[++i]);
                             break;
                 case 'f':   forceRotate = 1;
                             break;
@@ -265,6 +302,20 @@ void parseArgs(int argc, char* argv[]){
 
     if (pid == NULL)
         setPid(getStdout("pgrep polybar"));
+
+}
+
+void updatei3(){
+
+    char* i3Output = getStdout("i3-msg -t get_workspaces 2> /dev/null | grep -o \"num\" | wc -l");
+    int workspaceCount = atoi(i3Output);
+    if (workspaceCount <= 0){
+        char* reason = (char*) malloc(30 * sizeof(char) + sizeof(i3Output));
+        sprintf(reason, "Something went wrong with i3: \"%s\"\n", i3Output);
+        invalidArgs(reason);
+    }
+    len = originalLen - workspaceCount * i3;
+    free(i3Output);
 
 }
 
@@ -467,6 +518,8 @@ int main(int argc, char* argv[]){
 
         if (update > 0 && time % update == 0 && offline != 0)
             updateArgs(argc, argv, dest);
+        if (i3 > 0)
+            updatei3();
         updateButton(playing, paused);
 
         free(status);
