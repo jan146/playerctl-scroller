@@ -37,15 +37,13 @@ initial = 1
 click-left = playerctl -p spotify play-pause
 
 [module/spotify-prev]
-type = custom/script
-exec = echo " "
-format = <label>
+type = custom/text
+content = " "
 click-left = playerctl -p spotify previous
 
 [module/spotify-next]
-type = custom/script
-exec = echo ""
-format = <label>
+type = custom/text
+content = ""
 click-left = playerctl -p spotify next
 ```
 
