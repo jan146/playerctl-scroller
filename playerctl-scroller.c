@@ -1,62 +1,17 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <locale.h>
-#include <ctype.h>
-#include <unistd.h>
-#include <wchar.h>
+#include "playerctl-scroller.h"
 
-float delay = 0.1;
-int update = 0;
 int originalLen = 25;
-int len = 25;
 int i3 = 0;
-int forceRotate = 0;
-char* separator = NULL;
+int commandLength = 250;
+
 char* pid = NULL;
 char* module = NULL;
 char* player = NULL;
 char* script = NULL;
 
-char* full;
-int offset = 0;
-const int maxLength = 1000;
-const int commandLength = 250;
-
-void removeNL(char* arr){
-    if (arr[strlen(arr)-1] == '\n')
-        arr[strlen(arr)-1] = '\0';
-}
-
-char* getStdout(char* command){
-
-    FILE* fp;
-    char path[100];
-
-    fp = popen(command, "r");
-
-    if (fp == NULL){
-        // fflush(stdout);
-        // fprintf(stderr, "Command did not run properly\n");
-        pclose(fp);
-        exit(1);
-    }
-
-    if (fgets(path, sizeof(path), fp) != NULL){
-
-        char* ret = malloc(strlen(path) + 1);
-        strcpy(ret, path);
-        pclose(fp);
-        removeNL(ret);
-        return (ret);
-    
-    }
-
-}
-
-void printHelp(){
+void _printHelp_(){
     printf(
-        "Usage: cscroll [OPTIONS] [TEXT]\n\
+        "Usage: playerctl-scroller [OPTIONS] [TEXT]\n\
         OPTIONS:\n\
             -h:         Display this page.\n\
             --help      \n\
@@ -122,55 +77,13 @@ void printHelp(){
     \n");
 }
 
-void invalidArgs(char* reason){
-    fprintf(stderr,
-        "Invalid usage of cscroll: %s\
-Run \"cscroll -h\" for help.\n\
-    \n", reason);
-    free(reason);
-    exit(1);
-}
-
-void setDelay(char* d){
-    if (atof(d) <= 0){
-        char* reason = (char*) malloc(30 * sizeof(char) + sizeof(d));
-        sprintf(reason, "invalid delay parameter \"%s\"\n", d);
-        invalidArgs(reason);
-    }
-    delay = atof(d);
-}
-
-void setLength(char* l){
-    if (atoi(l) <= 0){
-        char* reason = (char*) malloc(30 * sizeof(char) + sizeof(l));
-        sprintf(reason, "invalid length parameter \"%s\"\n", l);
-        invalidArgs(reason);
-    }
-    len = atoi(l);
-    originalLen = len;
-}
-
 void seti3(char* i){
     if (atoi(i) <= 0){
-        char* reason = (char*) malloc(30 * sizeof(char) + sizeof(i));
+        char* reason = (char*) malloc(30 * sizeof(char) + strlen(i));
         sprintf(reason, "invalid i3 parameter \"%s\"\n", i);
         invalidArgs(reason);
     }
     i3 = atoi(i);
-}
-
-void setUpdate(char* u){
-    if (atoi(u) < 0){
-        char* reason = (char*) malloc(30 * sizeof(char) + sizeof(u));
-        sprintf(reason, "invalid update parameter \"%s\"\n", u);
-        invalidArgs(reason);
-    }
-    update = atoi(u);
-}
-
-void setSeparator(char* s){
-    separator = (char*) malloc(strlen(s)+1);
-    strcpy(separator, s);
 }
 
 void setPlayer(char* p){
@@ -206,7 +119,7 @@ void setScript(char* s){
     strcpy(script, s);
 }
 
-void printArgs(int argc, char* argv[]){
+void _printArgs_(int argc, char* argv[]){
 
     printf("%d: ", argc);
     for (int i = 0; i < argc; i++)
@@ -224,93 +137,12 @@ void printArgs(int argc, char* argv[]){
 
 }
 
-void parseArgs(int argc, char* argv[]){
-
-    for (int i = 1; i < argc; i++){
-        if (argv[i][0] == '-' && argv[i][1] == '-'){
-            char* str = argv[i] + 2;
-            if (strcmp(str, "help") == 0)
-                printHelp();
-            else if (strcmp(str, "delay") == 0)
-                setDelay(argv[++i]);
-            else if (strcmp(str, "length") == 0)
-                setLength(argv[++i]);
-            else if (strcmp(str, "i3") == 0)
-                seti3(argv[++i]);
-            else if (strcmp(str, "force") == 0)
-                forceRotate = 1;
-            else if (strcmp(str, "update") == 0)
-                setUpdate(argv[++i]);
-            else if (strcmp(str, "separator") == 0)
-                setSeparator(argv[++i]);
-            else if (strcmp(str, "player") == 0)
-                setPlayer(argv[++i]);
-            else if (strcmp(str, "pid") == 0)
-                setPid(argv[++i]);
-            else if (strcmp(str, "module") == 0)
-                setModule(argv[++i]);
-            else if (strcmp(str, "script") == 0)
-                setScript(argv[++i]);
-            else if (strcmp(str, "command") == 0)
-                strcat(full, getStdout(argv[++i]));
-            else{
-                char* reason = (char*) malloc(30 * sizeof(char) + sizeof(str));
-                sprintf(reason, "invalid argument \"--%s\"\n", str);
-                invalidArgs(reason);
-            }
-            continue;
-        }
-        else if (argv[i][0] == '-'){
-            switch (argv[i][1]){
-                case 'h':   printHelp();
-                            break;
-                case 'd':   setDelay(argv[++i]);
-                            break;
-                case 'l':   setLength(argv[++i]);
-                            break;
-                case '3':   seti3(argv[++i]);
-                            break;
-                case 'f':   forceRotate = 1;
-                            break;
-                case 'u':   setUpdate(argv[++i]);
-                            break;
-                case 's':   setSeparator(argv[++i]);
-                            break;
-                case 'p':   setPlayer(argv[++i]);
-                            break;
-                case 'i':   setPid(argv[++i]);
-                            break;
-                case 'm':   setModule(argv[++i]);
-                            break;
-                case 'r':   setScript(argv[++i]);
-                            break;
-                case 'c':   strcat(full, getStdout(argv[++i]));
-                            break;
-                default:{
-                    char* reason = (char*) malloc(30 * sizeof(char) + sizeof(argv[i]));
-                    sprintf(reason, "invalid argument \"%s\"\n", argv[i]);
-                    invalidArgs(reason);
-                }
-            }
-        }
-        else
-            strcat(full, argv[i]);
-    }
-
-    if ((strlen(full) > len || forceRotate) && separator != NULL)
-        strcat(full, separator);
-
-    if (pid == NULL)
-        setPid(getStdout("pgrep polybar"));
-
-}
-
 void updatei3(){
 
     char* i3Output = getStdout("i3-msg -t get_workspaces 2> /dev/null | grep -o \"num\" | wc -l");
     int workspaceCount = atoi(i3Output);
     if (workspaceCount <= 0){
-        char* reason = (char*) malloc(30 * sizeof(char) + sizeof(i3Output));
+        char* reason = (char*) malloc(35 * sizeof(char) + strlen(i3Output));
         sprintf(reason, "Something went wrong with i3: \"%s\"\n", i3Output);
         invalidArgs(reason);
     }
@@ -319,10 +151,10 @@ void updatei3(){
 
 }
 
-void updateArgs(int argc, char* argv[], char* dest){
+void _updateArgs_(int argc, char* argv[], char* dest){
 
-    char* temp = (char*) malloc(maxLength);
-    char* updateCommand = (char*) malloc(commandLength);
+    char* temp = (char*) malloc(maxLength*sizeof(char));
+    char* updateCommand = (char*) malloc(commandLength*sizeof(char));
 
     strcpy(updateCommand, script);
     strcat(updateCommand, " --update ");
@@ -351,7 +183,7 @@ void updateButton(int playing, int paused){
     
     if (playing == 0 || paused == 0){
 
-        char* message = (char*) malloc(commandLength);
+        char* message = (char*) malloc(commandLength*sizeof(char));
         strcpy(message, "polybar-msg -p ");
         strcat(message, pid);
         strcat(message, " hook ");
@@ -366,113 +198,77 @@ void updateButton(int playing, int paused){
 
 }
 
-void rotateText(int dontRotate){
+void _parseArgs_(int argc, char* argv[]){
 
-    // skip wide character parts 
-    // (bytes after first one)
-    // and go to next actual character
-    int wideCharOffset = 0;
+    int newArgCount = 1;
+    char** newArgs = malloc(20*sizeof(char*));
 
-    // increase offset by first
-    // character width for next
-    // rotation to start at the
-    // actual next character
-    int firstCharWidth = 1;
-
-    // count any wide characters
-    // as double wide to prevent
-    // a wide text output
-    int shortenLength = 0;
-
-    // Don't print "len" characters
-    // if "full" is shorter than
-    // the value of "len"
-    int printableChars = (strlen(full) < len) ? strlen(full) : len;
-    
-    for (int i = 0; i < printableChars - shortenLength - ((dontRotate) ? wideCharOffset : 0); i++){
-        char* ptr = full+((offset+i+wideCharOffset)%strlen(full));
-        char c = *ptr;
-
-        if (c >= -62 && c <= -33){
-            // 2 byte wide character
-            wchar_t wideChar[2];
-            char* unicodeString = malloc((2+1) * sizeof(char));
-            unicodeString[0] = c;
-            unicodeString[1] = *(ptr+1);
-            unicodeString[2] = L'\0';
-
-            mbstowcs(wideChar, unicodeString, 2);
-            printf("%ls", wideChar);
-            
-            wideCharOffset += 1;
-            if (i == 0)
-                firstCharWidth = 2;
-            
-            int width = wcwidth(*wideChar);
-            if (width > 1)
-                shortenLength += width - 1;
-            free(unicodeString);
+    for (int i = 1; i < argc; i++){
+        if (argv[i][0] == '-' && argv[i][1] == '-'){
+            char* str = argv[i] + 2;
+            if (strcmp(str, "help") == 0)
+                printHelp();
+            else if (strcmp(str, "i3") == 0)
+                seti3(argv[++i]);
+            else if (strcmp(str, "player") == 0)
+                setPlayer(argv[++i]);
+            else if (strcmp(str, "pid") == 0)
+                setPid(argv[++i]);
+            else if (strcmp(str, "module") == 0)
+                setModule(argv[++i]);
+            else if (strcmp(str, "script") == 0)
+                setScript(argv[++i]);
+            else {
+                newArgs[newArgCount++] = argv[i++];
+                newArgs[newArgCount++] = argv[i];
+            }
+            continue;
         }
-        else if (c >= -32 && c <= -17){
-            // 3 byte wide character
-            wchar_t wideChar[2];
-            char* unicodeString = malloc((3+1) * sizeof(char));
-            unicodeString[0] = c;
-            unicodeString[1] = *(ptr+1);
-            unicodeString[2] = *(ptr+2);
-            unicodeString[3] = L'\0';
-
-            mbstowcs(wideChar, unicodeString, 2);
-            printf("%ls", wideChar);
-            
-            wideCharOffset += 2;
-            if (i == 0)
-                firstCharWidth = 3;
-            
-            int width = wcwidth(*wideChar);
-            if (width > 1)
-                shortenLength += width - 1;
-            free(unicodeString);
+        else if (argv[i][0] == '-'){
+            switch (argv[i][1]){
+                case 'h':   _printHelp_();
+                            break;
+                case '3':   seti3(argv[++i]);
+                            break;
+                case 'p':   setPlayer(argv[++i]);
+                            break;
+                case 'i':   setPid(argv[++i]);
+                            break;
+                case 'm':   setModule(argv[++i]);
+                            break;
+                case 'r':   setScript(argv[++i]);
+                            break;
+                default: {
+                    newArgs[newArgCount++] = argv[i++];
+                    newArgs[newArgCount++] = argv[i];
+                }
+            }
         }
-        else if (c >= -16 && c <= -12){
-            // 4 byte wide character
-            wchar_t wideChar[2];
-            char* unicodeString = malloc((4+1) * sizeof(char));
-            unicodeString[0] = c;
-            unicodeString[1] = *(ptr+1);
-            unicodeString[2] = *(ptr+2);
-            unicodeString[3] = *(ptr+3);
-            unicodeString[4] = L'\0';
-
-            mbstowcs(wideChar, unicodeString, 2);
-            printf("%ls", wideChar);
-            
-            wideCharOffset += 3;
-            if (i == 0)
-                firstCharWidth = 4;
-            
-            int width = wcwidth(*wideChar);
-            if (width > 1)
-                shortenLength += width - 1;
-            free(unicodeString);
-        }
-        else // default (1 byte wide)
-            printf("%c", c);
+        else
+            strcat(full, argv[i]);
     }
-    offset += (firstCharWidth - 1);
+
+    parseArgs(newArgCount, newArgs);
+    free(newArgs);
+
+    //if ((strlen(full) > len || forceRotate) && separator != NULL)
+    //    strcat(full, separator);
+
+    if (pid == NULL)
+        setPid(getStdout("pgrep polybar"));
 
 }
 
 int main(int argc, char* argv[]){
 
     setlocale(LC_ALL, "");
-    full = (char*) malloc(maxLength);
-    full[0] = '\0';
+    full = (char*) calloc(maxLength, sizeof(char));
 
-    parseArgs(argc, argv);
-    // printArgs(argc, argv);
+
+    _parseArgs_(argc, argv);
+    // _printArgs_(argc, argv);
     
-    char* statusCommand = (char*) malloc(commandLength);
+    char* statusCommand = (char*) malloc(commandLength*sizeof(char));
     strcpy(statusCommand, script);
     strcat(statusCommand, " --status");
     int time = 0;
@@ -489,7 +285,7 @@ int main(int argc, char* argv[]){
         }
         
         if (time == 0)
-            updateArgs(argc, argv, dest);
+            _updateArgs_(argc, argv, dest);
 
         int playing = strcmp(status, "Playing");
         int paused = strcmp(status, "Paused");
@@ -512,7 +308,7 @@ int main(int argc, char* argv[]){
             offset -= strlen(full); 
 
         if (update > 0 && time % update == 0 && offline != 0)
-            updateArgs(argc, argv, dest);
+            _updateArgs_(argc, argv, dest);
         if (i3 > 0)
             updatei3();
         updateButton(playing, paused);
