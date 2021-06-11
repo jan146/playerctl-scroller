@@ -366,7 +366,20 @@ void updateButton(int playing, int paused){
 
 }
 
-void rotateText(int dontRotate){
+void rotateText(int status){
+
+    // 0 paused
+    // print from offset
+    // printableChars - shortenLength
+
+    // 1 playing + dont rotate
+    // just print string
+    // printableChars - wideCharOffset
+
+    // 2 playing + rotate
+    // print from offset
+    // increment offset
+    // printableChar - shortenLength
 
     // skip wide character parts 
     // (bytes after first one)
@@ -389,7 +402,7 @@ void rotateText(int dontRotate){
     // the value of "len"
     int printableChars = (strlen(full) < len) ? strlen(full) : len;
     
-    for (int i = 0; i < printableChars - ((dontRotate) ? wideCharOffset : shortenLength); i++){
+    for (int i = 0; i < printableChars - (status == 1 ? wideCharOffset : shortenLength); i++){
         char* ptr = full+((offset+i+wideCharOffset)%strlen(full));
         char c = *ptr;
 
@@ -459,7 +472,7 @@ void rotateText(int dontRotate){
         else // default (1 byte wide)
             printf("%c", c);
     }
-    if (!dontRotate)
+    if (status == 2)
         offset += (firstCharWidth - 1);
 
 }
@@ -496,15 +509,15 @@ int main(int argc, char* argv[]){
         int paused = strcmp(status, "Paused");
         int offline = strcmp(status, "OFFLINE");
 
-        if (playing == 0 || paused == 0){
-            if (forceRotate || strlen(full) > len){
-                if (playing == 0)
-                    offset++;
-                rotateText(0);
-            }
-            else
+        if (playing == 0) {
+            if (forceRotate || strlen(full) > len) {
+                rotateText(2);
+                offset++;
+            } else
                 rotateText(1);
         }
+        else if (paused == 0)
+            rotateText(0);
         else
             printf("No player is running");
 
