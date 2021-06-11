@@ -219,7 +219,21 @@ void parseArgs(int argc, char* argv[]){
 
 }
 
-void rotateText(int dontRotate){
+void rotateText(int status){
+
+    // 0 paused + long
+    // print from offset
+    // printableChars - shortenLength
+
+    // 1 playing + dont rotate
+    // 1 paused + short
+    // just print string
+    // printableChars - wideCharOffset
+
+    // 2 playing + rotate
+    // print from offset
+    // increment offset
+    // printableChar - shortenLength
 
     // skip wide character parts 
     // (bytes after first one)
@@ -242,7 +256,7 @@ void rotateText(int dontRotate){
     // the value of "len"
     int printableChars = (strlen(full) < len) ? strlen(full) : len;
     
-    for (int i = 0; i < printableChars - shortenLength - ((dontRotate) ? wideCharOffset : 0); i++){
+    for (int i = 0; i < printableChars - (status == 1 ? wideCharOffset : shortenLength); i++){
         char* ptr = full+((offset+i+wideCharOffset)%strlen(full));
         char c = *ptr;
 
@@ -312,7 +326,8 @@ void rotateText(int dontRotate){
         else // default (1 byte wide)
             printf("%c", c);
     }
-    offset += (firstCharWidth - 1);
+    if (status == 2)
+        offset += (firstCharWidth - 1);
 
 }
 
