@@ -51,6 +51,7 @@ void setScript(char* s);
 
 void rotateText(int dontRotate);
 void updatei3();
+void updatePrefix();
 void updateArgs(int argc, char* argv[]);
 void _updateArgs_(int argc, char* argv[], char* dest);
 void updateButton(int playing, int paused);

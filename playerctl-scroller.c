@@ -180,6 +180,9 @@ void _updateArgs_(int argc, char* argv[], char* dest){
     free(ret);
     free(updateCommand);
 
+    if (icons)
+        updatePrefix();
+
 }
 
 void updateButton(int playing, int paused){
@@ -307,19 +310,15 @@ int main(int argc, char* argv[]){
             status[i] = '\0';
         }
         
-        if (time == 0) {
-            updatePrefix();
+        if (time == 0)
             _updateArgs_(argc, argv, dest);
-        }
 
         int playing = strcmp(status, "Playing");
         int paused = strcmp(status, "Paused");
         int offline = strcmp(status, "OFFLINE");
 
-        if (update > 0 && time % update == 0 && offline != 0){
-            updatePrefix();
+        if (update > 0 && time % update == 0 && offline != 0)
             _updateArgs_(argc, argv, dest);
-        }
 
         if (playing == 0 || paused == 0) {
             if (icons)
