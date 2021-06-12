@@ -25,7 +25,6 @@ After installation, add the following modules to the config in `~/.config/polyba
 [module/spotify]
 type = custom/script
 tail = true
-format-prefix = " "
 format = <label>
 exec = $HOME/.config/polybar/scripts/scroller.sh
 
