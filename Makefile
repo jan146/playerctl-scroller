@@ -18,7 +18,7 @@ uninstall:
 reinstall:
 	rm -f ./playerctl-scroller && \
 	rm /usr/local/bin/playerctl-scroller && \
-	$(CC) -o playerctl-scroller playerctl-scroller.c $(CFLAGS) && \
+	$(CC) -o playerctl-scroller playerctl-scroller.c cscroll.c $(CFLAGS) && \
 	cp ./playerctl-scroller /usr/local/bin/
 
 compile:
