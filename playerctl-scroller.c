@@ -209,14 +209,11 @@ void updatePrefix(){
     char* message = (char*) malloc(commandLength*sizeof(char)); 
     strcpy(message, script);
     strcat(message, " --prefix");
-    char* reply = getStdout(message);
-
+    
     if (prefix != NULL)
         free(prefix);
-    prefix = (char*) malloc((strlen(reply)+1)*sizeof(char));
-    strcpy(prefix, reply);
+    prefix = getStdout(message);
     free(message);
-    free(reply);
 
 }
 
