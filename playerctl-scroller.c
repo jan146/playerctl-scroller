@@ -2,12 +2,14 @@
 
 int originalLen = 25;
 int i3 = 0;
+int icons = 0;
 int commandLength = 250;
 
 char* pid = NULL;
 char* module = NULL;
 char* player = NULL;
 char* script = NULL;
+char* prefix = NULL;
 
 void _printHelp_(){
     printf(
@@ -34,6 +36,9 @@ void _printHelp_(){
             --force     even if it is not too long\n\
                         (longer than -l argument).\n\
                         Default: off.\n\
+                        \n\
+            -i:         Enable icons in front of text\n\
+            --icon      Default: off\n\
                         \n\
             -c [command]:\n\
             --command   Place your desired command in double\n\
@@ -134,6 +139,7 @@ void _printArgs_(int argc, char* argv[]){
     printf("Player: [%s]\n", player);
     printf("Pid: [%s]\n", pid);
     printf("Module: [%s]\n", module);
+    printf("Icons: [%s]\n", icons);
 
 }
 
@@ -198,6 +204,22 @@ void updateButton(int playing, int paused){
 
 }
 
+void updatePrefix(){
+
+    char* message = (char*) malloc(commandLength*sizeof(char)); 
+    strcpy(message, script);
+    strcat(message, " --prefix");
+    char* reply = getStdout(message);
+
+    if (prefix != NULL)
+        free(prefix);
+    prefix = (char*) malloc((strlen(reply)+1)*sizeof(char));
+    strcpy(prefix, reply);
+    free(message);
+    free(reply);
+
+}
+
 void _parseArgs_(int argc, char* argv[]){
 
     int newArgCount = 1;
@@ -216,6 +238,8 @@ void _parseArgs_(int argc, char* argv[]){
                 setPid(argv[++i]);
             else if (strcmp(str, "module") == 0)
                 setModule(argv[++i]);
+            else if (strcmp(str, "icon") == 0)
+                icons = 1;
             else if (strcmp(str, "script") == 0)
                 setScript(argv[++i]);
             else {
@@ -235,6 +259,8 @@ void _parseArgs_(int argc, char* argv[]){
                 case 'i':   setPid(argv[++i]);
                             break;
                 case 'm':   setModule(argv[++i]);
+                            break;
+                case 'o':   icons = 1;
                             break;
                 case 'r':   setScript(argv[++i]);
                             break;
@@ -284,23 +310,31 @@ int main(int argc, char* argv[]){
             status[i] = '\0';
         }
         
-        if (time == 0)
+        if (time == 0) {
+            updatePrefix();
             _updateArgs_(argc, argv, dest);
+        }
 
         int playing = strcmp(status, "Playing");
         int paused = strcmp(status, "Paused");
         int offline = strcmp(status, "OFFLINE");
 
-        if (playing == 0) {
-            if (forceRotate || strlen(full) > len){
-                rotateText(2);
-                offset++;
+        if (update > 0 && time % update == 0 && offline != 0){
+            updatePrefix();
+            _updateArgs_(argc, argv, dest);
+        }
+
+        if (playing == 0 || paused == 0) {
+            if (icons)
+                printf("%s ", prefix);
+            if (forceRotate || strlen(full) > len) {
+                if (playing == 0) {
+                    rotateText(2);
+                    offset++;
+                }
+                else
+                    rotateText(0);
             }
-            else
-                rotateText(1);
-        } else if (paused == 0) {
-            if (forceRotate || strlen(full) > len)
-                rotateText(0);
             else
                 rotateText(1);
         }

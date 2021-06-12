@@ -22,6 +22,7 @@ extern char* pid;
 extern char* module;
 extern char* player;
 extern char* script;
+extern char* prefix;
 
 extern int maxLength;
 extern int commandLength;

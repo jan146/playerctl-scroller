@@ -17,7 +17,7 @@ MODULE="spotify-play-pause"
 # Set the name of desired mpris player,
 # such as firefox, spotify, chromium,
 # vlc or simply just playerctl.
-PLAYER="spotify"
+PLAYER="playerctl"
 
 # Set delay (in seconds) between rotating 
 # a single character of text (lower
@@ -44,6 +44,11 @@ SEPARATOR="  "
 # Set text between the artist and
 # title texts.
 MIDDLE=" — "
+
+# Enable icon in front of text
+# Includes , ,  and 
+# 1 = enabled, 0 = disabled
+ICONS="1"
 
 # The text will be updated every INTERVAL
 # rotations, i. e. if DELAY is set to 0.2
@@ -135,6 +140,33 @@ if [ "$1" = "--status" ]; then
 
 fi
 
+if [ "$1" = "--prefix" ]; then
+
+    INSTANCE=$(dbus-send --print-reply \
+        --dest=org.mpris.MediaPlayer2.playerctld \
+        /org/mpris/MediaPlayer2 \
+        org.freedesktop.DBus.Properties.Get \
+        string:"com.github.altdesktop.playerctld" \
+        string:"PlayerNames" \
+        | grep string | head -1 \
+        | sed 's/.*Player2\.//g;s/.$//g;s/\..*//g')
+
+    case $INSTANCE in
+        chromium)
+            echo -n "";;
+        chrome)
+            echo -n "";;
+        firefox)
+            echo -n "";;
+        spotify)
+            echo -n "";;
+        *)
+            echo -n "";;
+    esac
+    exit 0
+
+fi
+
 PID=$(pgrep -a "polybar" | grep "$BAR" | cut -d" " -f1)
 DIR="$(dirname "$(readlink -f "$0")")"
 
@@ -152,6 +184,9 @@ if [ $FORCE = "1" ]; then
 fi
 if [ $i3 -gt "0" ]; then
     RUNCOMMAND="$RUNCOMMAND -3 $i3"
+fi
+if [ $ICONS = "1" ]; then
+    RUNCOMMAND="$RUNCOMMAND -o"
 fi
 
 eval $RUNCOMMAND
