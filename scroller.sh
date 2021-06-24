@@ -152,13 +152,11 @@ if [ "$1" = "--prefix" ]; then
         | sed 's/.*Player2\.//g;s/.$//g;s/\..*//g')
 
     case $INSTANCE in
-        chromium)
-            echo -n "";;
-        chrome)
+        chrom*)
             echo -n "";;
         firefox)
             echo -n "";;
-        spotify)
+        spotify*)
             echo -n "";;
         *)
             echo -n "";;
