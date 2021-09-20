@@ -290,7 +290,6 @@ int main(int argc, char* argv[]){
     setlocale(LC_ALL, "");
     full = (char*) calloc(maxLength, sizeof(char));
 
-
     _parseArgs_(argc, argv);
     // _printArgs_(argc, argv);
     
@@ -302,14 +301,21 @@ int main(int argc, char* argv[]){
     while (1){
         
         char* status = (char*) getStdout(statusCommand);
-        char* dest;
+        char* dest = NULL;
         
         if (strcmp(status, "OFFLINE") != 0){
             int i = strcspn(status, " ");
             dest = status+i+1;
             status[i] = '\0';
         }
-        
+
+        if (dest == NULL) {
+            printf("No player is running\n");
+            usleep(1000000*delay);
+            fflush(stdout);
+            continue;
+        }
+
         if (time == 0)
             _updateArgs_(argc, argv, dest);
 
