@@ -24,6 +24,12 @@ PLAYER="playerctl"
 # number correspons to faster scrolling).
 DELAY="0.2"
 
+# if you get errors for an invalid parameter,
+# try the solution below
+# by uncommenting the next two lines
+# DECIMAL_POINT=$(locale -k LC_NUMERIC | grep "decimal_point" | sed 's/.*="//g;s/.$//g')
+# DELAY=0"$DECIMAL_POINT"2
+
 # Set the maximum length of the text.
 # If the text is longer than LENGTH,
 # it will rotate, otherwise it will not.
