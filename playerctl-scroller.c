@@ -103,7 +103,7 @@ void setPlayer(char* p){
         /org/mpris/MediaPlayer2 \
         org.freedesktop.DBus.Properties.GetAll \
         string:\"org.mpris.MediaPlayer2.Player\" \
-        &> /dev/null";
+        > /dev/null 2>$1";
         system(pctl);
     }
 
@@ -199,7 +199,7 @@ void updateButton(int playing, int paused){
         removeNL(module);
         strcat(message, module);
         strcat(message, (playing == 0) ? " 1" : " 2");
-        strcat(message, " &> /dev/null ; exit 0");
+        strcat(message, " > /dev/null 2>&1 ; exit 0");
         system(message);
         free(message);
 
