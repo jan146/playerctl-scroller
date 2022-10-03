@@ -42,6 +42,7 @@ void _printHelp_();
 void setDelay(char* d);
 void setLength(char* l);
 void seti3(char* i);
+void setWaybar(char* w);
 void setUpdate(char* u);
 void setSeparator(char* s);
 void setPlayer(char* p);
@@ -50,7 +51,7 @@ void setModule(char* m);
 void setScript(char* s);
 
 void rotateText(int dontRotate);
-void updatei3();
+void updateBar();
 void updatePrefix();
 void updateArgs(int argc, char* argv[]);
 void _updateArgs_(int argc, char* argv[], char* dest);

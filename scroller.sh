@@ -72,6 +72,12 @@ INTERVAL="5"
 # for every open workspace
 i3="0"
 
+# If you have the workspaces module
+# for waybar, you can set the amount
+# of characters that this module will
+# shrink by for every open workspace
+WAYBAR="0"
+
 ### END OF USER CONFIGURATION ###
 
 if [ "$1" = "--update" ]
@@ -187,11 +193,19 @@ DIR="$(dirname "$(readlink -f "$0")")"
 RUNCOMMAND="playerctl-scroller \
     -l $LENGTH \
     -d $DELAY -u $INTERVAL \
-    -i $PID \
     -p $PLAYER \
-    -m \"$MODULE\" \
     -r \"$DIR/scroller.sh\" \
     -s \"$SEPARATOR\""
+
+if [ -n "$PID" ]
+then
+    RUNCOMMAND="$RUNCOMMAND -i $PID"
+fi
+
+if [ -n "$MODULE" ]
+then
+    RUNCOMMAND="$RUNCOMMAND -m \"$MODULE\""
+fi
 
 if [ -n "$FORCE" ] && [ "$FORCE" = "1" ]
 then
@@ -201,6 +215,11 @@ fi
 if [ -n "$i3" ] && [ "$i3" -gt "0" ]
 then
     RUNCOMMAND="$RUNCOMMAND -3 $i3"
+fi
+
+if [ -n "$WAYBAR" ] && [ "$WAYBAR" -gt "0" ]
+then
+    RUNCOMMAND="$RUNCOMMAND -w $WAYBAR"
 fi
 
 if [ -n "$ICONS" ] && [ "$ICONS" = "1" ]

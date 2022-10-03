@@ -2,6 +2,7 @@
 
 int originalLen = 25;
 int i3 = 0;
+int waybar = 0;
 int icons = 0;
 int commandLength = 250;
 
@@ -68,10 +69,14 @@ void _printHelp_(){
             --module    Set the name of the polybar module.\n\
                         \n\
             -3 [space]: \n\
-            --i3        Set the number of spaces an i3\n\
+            --i3        Set the number of spaces that an i3\n\
                         workspace element occupies.\n\
                         Default: off (0)\n\
                         \n\
+            -w [space]: \n\
+            --waybar    Set the number of spaces that a\n\
+                        waybar workspace element occupies\n\
+                        Default: off (0)\n\
         TEXT:\n\
             Add either strings or commands (-c) to the text\n\
             that you want to display.\n\
@@ -89,6 +94,15 @@ void seti3(char* i){
         invalidArgs(reason);
     }
     i3 = atoi(i);
+}
+
+void setWaybar(char* w){
+    if (atoi(w) <= 0){
+        char* reason = (char*) malloc(35 * sizeof(char) + strlen(w));
+        sprintf(reason, "invalid waybar parameter \"%s\"\n", w);
+        invalidArgs(reason);
+    }
+    waybar = atoi(w);
 }
 
 void setPlayer(char* p){
@@ -133,6 +147,7 @@ void _printArgs_(int argc, char* argv[]){
     printf("Delay: [%f]\n", delay);
     printf("Length: [%d]\n", len);
     printf("i3: [%d]\n", i3);
+    printf("Waybar: [%d]\n", waybar);
     printf("Force: [%d]\n", forceRotate);
     printf("Update: [%d]\n", update);
     printf("Separator: [%s]\n", separator);
@@ -143,17 +158,26 @@ void _printArgs_(int argc, char* argv[]){
 
 }
 
-void updatei3(){
+void updateBar(){
 
-    char* i3Output = getStdout("i3-msg -t get_workspaces 2> /dev/null | grep -o \"num\" | wc -l");
-    int workspaceCount = atoi(i3Output);
+    char* cmdOutput = NULL;
+    if (i3 > 0)
+        cmdOutput = getStdout("i3-msg -t get_workspaces 2> /dev/null | grep -o \"num\" | wc -l");
+    else if (waybar > 0)
+        cmdOutput = getStdout("swaymsg -t get_workspaces 2>&1 | grep workspace | wc -l");
+
+    int workspaceCount = atoi(cmdOutput);
     if (workspaceCount <= 0){
-        char* reason = (char*) malloc(35 * sizeof(char) + strlen(i3Output));
-        sprintf(reason, "Something went wrong with i3: \"%s\"\n", i3Output);
+        char* reason = (char*) malloc(35 * sizeof(char) + strlen(cmdOutput));
+        sprintf(reason, "Could not get workspace count: \"%s\"\n", cmdOutput);
         invalidArgs(reason);
     }
-    len = originalLen - workspaceCount * i3;
-    free(i3Output);
+
+    if (i3 > 0)
+        len = originalLen - workspaceCount * i3;
+    else if (waybar > 0)
+        len = originalLen - workspaceCount * waybar;
+    free(cmdOutput);
 
 }
 
@@ -232,6 +256,8 @@ void _parseArgs_(int argc, char* argv[]){
                 printHelp();
             else if (strcmp(str, "i3") == 0)
                 seti3(argv[++i]);
+            else if (strcmp(str, "waybar") == 0)
+                setWaybar(argv[++i]);
             else if (strcmp(str, "player") == 0)
                 setPlayer(argv[++i]);
             else if (strcmp(str, "pid") == 0)
@@ -253,6 +279,8 @@ void _parseArgs_(int argc, char* argv[]){
                 case 'h':   _printHelp_();
                             break;
                 case '3':   seti3(argv[++i]);
+                            break;
+                case 'w':   setWaybar(argv[++i]);
                             break;
                 case 'p':   setPlayer(argv[++i]);
                             break;
@@ -280,8 +308,8 @@ void _parseArgs_(int argc, char* argv[]){
     //if ((strlen(full) > len || forceRotate) && separator != NULL)
     //    strcat(full, separator);
 
-    if (pid == NULL)
-        setPid(getStdout("pgrep polybar"));
+    //if (pid == NULL)
+    //    setPid(getStdout("pgrep polybar"));
 
 }
 
@@ -349,9 +377,10 @@ int main(int argc, char* argv[]){
 
         if (update > 0 && time % update == 0 && offline != 0)
             _updateArgs_(argc, argv, dest);
-        if (i3 > 0)
-            updatei3();
-        updateButton(playing, paused);
+        if (i3 > 0 || waybar > 0)
+            updateBar();
+        if (module != NULL)
+            updateButton(playing, paused);
 
         free(status);
         printf("\n");
@@ -360,9 +389,11 @@ int main(int argc, char* argv[]){
 
     }
     
+    if (module != NULL)
+        free(module);
+    if (pid != NULL)
+        free(pid);
     free(separator);
-    free(pid);
-    free(module);
     free(player);
     free(script);
     free(statusCommand);
