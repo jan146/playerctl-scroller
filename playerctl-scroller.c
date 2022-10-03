@@ -109,7 +109,7 @@ void setPlayer(char* p){
     player = (char*) malloc(strlen(p)+1);
     strcpy(player, p);
     
-    // playerctld destionation is not
+    // playerctld destination is not
     // initialized automatically
     if (strstr(p, "playerctl") != NULL) {
         char pctl[] = "dbus-send --print-reply \
@@ -117,7 +117,7 @@ void setPlayer(char* p){
         /org/mpris/MediaPlayer2 \
         org.freedesktop.DBus.Properties.GetAll \
         string:\"org.mpris.MediaPlayer2.Player\" \
-        > /dev/null 2>$1";
+        > /dev/null 2>&1";
         system(pctl);
     }
 
@@ -320,7 +320,7 @@ int main(int argc, char* argv[]){
 
     _parseArgs_(argc, argv);
     // _printArgs_(argc, argv);
-    
+
     char* statusCommand = (char*) malloc(commandLength*sizeof(char));
     strcpy(statusCommand, script);
     strcat(statusCommand, " --status");
