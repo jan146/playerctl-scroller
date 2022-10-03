@@ -74,18 +74,19 @@ i3="0"
 
 ### END OF USER CONFIGURATION ###
 
-if [ "$1" = "--update" ]; then
+if [ "$1" = "--update" ]
+then
 
-    DEST=$2
+    DEST="$2"
 
     GETMETADATA="dbus-send --print-reply \
-    --dest="$DEST" \
+    --dest=$DEST \
     /org/mpris/MediaPlayer2 \
     org.freedesktop.DBus.Properties.Get \
-    string:"org.mpris.MediaPlayer2.Player" \
-    string:"Metadata""
+    string:org.mpris.MediaPlayer2.Player \
+    string:Metadata"
 
-    METADATA=$(eval $GETMETADATA)
+    METADATA="$($GETMETADATA)"
 
     ARTIST=$(
         echo "$METADATA" \
@@ -101,15 +102,19 @@ if [ "$1" = "--update" ]; then
         | sed 's/.*string \"//g;s/.$//g'
     )
     
-    if [[ -n "$ARTIST" ]]; then
-        echo "$ARTIST$MIDDLE$TITLE" ; exit 0
+    if [ -n "$ARTIST" ]
+    then
+        echo "$ARTIST$MIDDLE$TITLE"
     else
-        echo "$TITLE" ; exit 0
+        echo "$TITLE"
     fi
+
+    exit 0
 
 fi
 
-if [ "$1" = "--status" ]; then
+if [ "$1" = "--status" ]
+then
 
     GETDEST="dbus-send --print-reply \
     --dest=org.freedesktop.DBus \
@@ -117,36 +122,41 @@ if [ "$1" = "--status" ]; then
     org.freedesktop.DBus.ListNames \
     | grep mpris \
     | grep $PLAYER \
-    | sed 's/.*string \"//g;s/.$//g'"
+    | sed 's/.*string \"//g;s/\"$//g'"
 
-    DEST=$(eval $GETDEST)
+    DEST=$(sh -c "$GETDEST")
 
-    if [[ -n "$DEST" ]]; then
+    if [ -n "$DEST" ]
+    then
 
         STATUSCOMMAND="dbus-send --print-reply \
-        --dest="$DEST" \
+        --dest=$DEST \
         /org/mpris/MediaPlayer2 \
         org.freedesktop.DBus.Properties.Get \
         string:org.mpris.MediaPlayer2.Player \
         string:PlaybackStatus \
         | grep variant \
-        | sed 's/.*string \"//g;s/.$//g'"
+        | sed 's/.*string \"//g;s/\"$//g'"
 
-        STATUS=$(eval "$STATUSCOMMAND" 2> /dev/null)
+        STATUS=$(sh -c "$STATUSCOMMAND" 2> /dev/null)
         
-        if [[ -n "$STATUS" ]]; then
-            echo "$STATUS $DEST" ; exit 0
+        if [ -n "$STATUS" ]
+        then
+            echo "$STATUS $DEST"
         else
-            echo "OFFLINE" ; exit 0
+            echo "OFFLINE"
         fi
 
     else
-        echo "OFFLINE" ; exit 0
+        echo "OFFLINE"
     fi
+
+    exit 0
 
 fi
 
-if [ "$1" = "--prefix" ]; then
+if [ "$1" = "--prefix" ]
+then
 
     INSTANCE=$(dbus-send --print-reply \
         --dest=org.mpris.MediaPlayer2.playerctld \
@@ -157,7 +167,7 @@ if [ "$1" = "--prefix" ]; then
         | grep string | head -1 \
         | sed 's/.*Player2\.//g;s/.$//g;s/\..*//g')
 
-    case $INSTANCE in
+    case "$INSTANCE" in
         chrom*)
             echo -n "";;
         firefox)
@@ -183,14 +193,19 @@ RUNCOMMAND="playerctl-scroller \
     -r \"$DIR/scroller.sh\" \
     -s \"$SEPARATOR\""
 
-if [ $FORCE = "1" ]; then
+if [ -n "$FORCE" ] && [ "$FORCE" = "1" ]
+then
     RUNCOMMAND="$RUNCOMMAND -f"
 fi
-if [ $i3 -gt "0" ]; then
+
+if [ -n "$i3" ] && [ "$i3" -gt "0" ]
+then
     RUNCOMMAND="$RUNCOMMAND -3 $i3"
 fi
-if [ $ICONS = "1" ]; then
+
+if [ -n "$ICONS" ] && [ "$ICONS" = "1" ]
+then
     RUNCOMMAND="$RUNCOMMAND -o"
 fi
 
-eval $RUNCOMMAND
+sh -c "$RUNCOMMAND"
